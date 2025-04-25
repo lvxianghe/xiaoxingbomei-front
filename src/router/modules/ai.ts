@@ -5,7 +5,7 @@ const aiRoutes: RouteRecordRaw = {
   name: 'AI',
   component: () => import('@/views/ai/index.vue'),
   meta: {
-    title: '大模型应用开发',
+    title: '大模型应用',
     icon: 'Connection',
     requiresAuth: false,
     // 不设置hideGridNav，让导航栏在AI中心显示
