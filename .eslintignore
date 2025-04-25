@@ -1,0 +1,10 @@
+node_modules
+*.md
+.vscode
+.idea
+dist
+/public
+/docs
+.husky
+.local
+/bin
