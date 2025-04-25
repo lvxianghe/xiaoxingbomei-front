@@ -1,25 +1,33 @@
-# 引言
-想要做一名懂前端的后端开发，借鉴主流app及互联网服务，全面提升自己的技术能力
- - 搜索引擎：百度、谷歌
- - im：微信、chatgpt
- - 搜索推荐系统/社交帖子音视频：小红书、抖音
- - 系统管理：企业通用后台管理系统
+# 小型博美AI前端项目
 
-互联网大厂企业级中台系统，前端技术模版
+这是一个基于Vue 3 + TypeScript开发的多功能AI服务平台，集成了多种智能AI应用场景，为用户提供便捷、智能的服务体验。
 
-通过此项目可以达到以下能力：
+## 项目介绍
 
-1.从0到1构建一个企业级中台管理系统脚手架
+小型博美AI平台是一个综合性AI服务平台，旨在为用户提供多种AI智能应用服务。平台集成了智能聊天助手、情感安慰、文档智能分析等多种功能模块，采用现代化前端技术栈开发，提供流畅、美观的用户界面和交互体验。
 
-2.能够独立从0到1负责企业级中台管理系统
+## 功能模块
 
-3.推进和落地团队前端研发规范
+平台当前包含以下AI功能模块：
 
-4.在企业中能够独当一面
+- **小型博美** - 智能AI助手，提供自然语言交互和问答服务
+- **哄哄模拟器** - 提供情感安慰和心理支持的AI模拟系统
+- **ChatPDF** - 智能PDF文档分析和问答系统
+- **更多功能模块** - 持续开发中...
+
+## 技术栈
+
+- **前端框架**：Vue 3 + TypeScript
+- **UI组件库**：Element Plus
+- **路由管理**：Vue Router 4
+- **状态管理**：Pinia
+- **构建工具**：Vite 4
+- **CSS预处理器**：Less
+- **HTTP客户端**：Axios
+- **进度指示器**：NProgress
 
 # 文档
-语雀地址：[https://www.yuque.com/lvxianghe-tzsng/lvxianghe/zw4spv69ydxdoy7k?singleDoc#](https://www.yuque.com/lvxianghe-tzsng/lvxianghe/zw4spv69ydxdoy7k?singleDoc# ) 《前端脚手架》
-
+语雀地址：
 # 架构设计
 ## 版本
  - nodejs：18.20.6
@@ -70,30 +78,19 @@
 |                      |            |             |          |       |
 
 
-# 进度
-## 登录
-![image](https://github.com/user-attachments/assets/57420628-8f21-4e71-8d22-0cdc79993edd)
+## AI模块截图
 
-## 主页面
-![image](https://github.com/user-attachments/assets/0b2cd9c7-d04e-446f-ba19-adde9dbc943f)
+### AI中心
+![AI中心页面](https://github.com/user-attachments/assets/98613bd8-cae3-41d8-94fb-f0f918ce35b3)
 
-## 抖音（仿）
-![image](https://github.com/user-attachments/assets/266cc4ee-efdf-4189-bdab-4a43f351b4bf)
+### 小型博美
+智能AI助手，提供自然语言交互和问答服务
 
-## 微信（仿）
-![image](https://github.com/user-attachments/assets/6fdaa57a-e1b3-4456-ab99-ef87639c0a3d)
+### 哄哄模拟器
+提供情感安慰和心理支持的AI模拟系统
 
-## 小红书（仿）
-![image](https://github.com/user-attachments/assets/afdb5413-834a-4487-b3ea-53ffc7676152)
-
-## chatGPT（仿）
-![image](https://github.com/user-attachments/assets/98613bd8-cae3-41d8-94fb-f0f918ce35b3)
-
-## 后台管理
-![image](https://github.com/user-attachments/assets/b4bd07c4-5543-476f-b3d3-2db21120b5e6)
-
-## 搜索引擎（仿百度谷歌）
-![image](https://github.com/user-attachments/assets/a5ce5925-805b-4668-b13b-70f769f2b8ec)
+### ChatPDF
+智能PDF文档分析和问答系统
 
 
 
