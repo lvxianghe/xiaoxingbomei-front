@@ -207,7 +207,7 @@
                 <path d="M12 2a4.5 4.5 0 0 0 0 9 4.5 4.5 0 0 1 0 9 10 10 0 0 0 0-18z"></path>
                 <path d="M12 8a2.5 2.5 0 1 0 0 5 2.5 2.5 0 1 0 0-5"></path>
               </svg>
-              <span>深度思考 (R1)</span>
+              <span>深度思考</span>
             </button>
             <button class="mode-btn web-search-btn" @click="showToast('联网搜索功能开发中')" title="联网搜索">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -217,11 +217,11 @@
               </svg>
               <span>联网搜索</span>
             </button>
-            <button class="mode-btn prompt-library-btn" @click="openPromptLibrary" title="提示词库">
+            <button class="mode-btn heartbeat-simulator-btn" @click="showToast('哄哄模拟器功能开发中')" title="哄哄模拟器">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
               </svg>
-              <span>提示词库</span>
+              <span>哄哄模拟器</span>
             </button>
             <button class="mode-btn cloud-model-btn" @click="useCloudModel = !useCloudModel" :class="{ 'active': useCloudModel }" title="云端大模型">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -242,6 +242,19 @@
             ></textarea>
             
             <div class="input-tools">
+              <!-- 模型切换按钮 -->
+              <button class="tool-btn model-switch-btn" @click="openModelSelector" title="模型切换">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                  <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                  <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                </svg>
+              </button>
+              <button class="tool-btn prompt-library-btn" @click="openPromptLibrary" title="提示词库">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                </svg>
+              </button>
               <button class="tool-btn upload-btn" @click="openFileManager" title="管理文件">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -872,6 +885,56 @@
         <div class="modal-footer">
           <button class="cancel-btn" @click="showPromptModal = false">取消</button>
           <button class="confirm-btn" @click="savePrompt">保存</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 模型选择器弹出层 -->
+    <div class="modal-overlay" v-if="showModelSelector" @mousedown="handleModalOverlayMouseDown" @mouseup="handleModelSelectorOverlayMouseUp">
+      <div class="modal-container model-selector" @click.stop style="max-width: 600px; width: 90%;">
+        <div class="modal-header">
+          <h3>选择模型</h3>
+          <button class="modal-close" @click="showModelSelector = false">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="models-container">
+            <div 
+              v-for="model in availableModels" 
+              :key="model.id" 
+              :class="['model-item', selectedModel === model.id ? 'selected' : '']"
+              @click="selectModel(model.id)"
+            >
+              <div class="model-icon" :style="{ backgroundColor: model.color }">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                  <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                  <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                </svg>
+              </div>
+              <div class="model-details">
+                <div class="model-name">{{ model.name }}</div>
+                <div class="model-description">{{ model.description }}</div>
+                <div class="model-tags">
+                  <span 
+                    v-for="(tag, tagIndex) in model.tags" 
+                    :key="tagIndex" 
+                    class="model-tag"
+                  >
+                    {{ tag }}
+                  </span>
+                </div>
+              </div>
+              <div class="model-select-indicator" v-if="selectedModel === model.id">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="cancel-btn" @click="showModelSelector = false">取消</button>
+          <button class="confirm-btn" @click="applyModelSelection">确认选择</button>
         </div>
       </div>
     </div>
@@ -2224,6 +2287,45 @@ const editingPrompt = ref<PromptTemplate>({
 
 });
 
+// 模型选择器相关状态
+const showModelSelector = ref(false);
+const selectedModel = ref('gpt-3.5-turbo');
+const tempSelectedModel = ref(''); // 临时存储选择的模型，确认后才应用
+const availableModels = ref([
+  {
+    id: 'gpt-3.5-turbo',
+    name: 'GPT-3.5 Turbo',
+    description: '优质通用模型，善于创意写作和基础编程',
+    color: '#10b981', // 绿色
+    tags: ['快速', '经济', '通用'],
+    tokenLimit: 4096
+  },
+  {
+    id: 'gpt-4',
+    name: 'GPT-4',
+    description: '高级通用模型，擅长复杂任务和深度分析',
+    color: '#8b5cf6', // 紫色
+    tags: ['高级', '复杂推理', '详尽'],
+    tokenLimit: 8192
+  },
+  {
+    id: 'claude-3-opus',
+    name: 'Claude 3 Opus',
+    description: 'Anthropic顶级模型，专注学术和复杂推理',
+    color: '#3b82f6', // 蓝色
+    tags: ['专业', '学术', '最新'],
+    tokenLimit: 16000
+  },
+  {
+    id: 'llama-3-70b',
+    name: 'Llama 3 (70B)',
+    description: 'Meta开源大模型，本地部署友好',
+    color: '#f97316', // 橙色
+    tags: ['开源', '本地', '平衡'],
+    tokenLimit: 4096
+  }
+]);
+
 // 添加模态蒙层的鼠标事件处理
 const modalMouseDownTarget = ref(null);
 
@@ -2729,6 +2831,34 @@ const insertChatHistory = async (title: string, chatId: string) => {
     showToast('创建会话失败，请检查网络连接');
     return false;
   }
+};
+
+// 打开模型选择器
+const openModelSelector = () => {
+  tempSelectedModel.value = selectedModel.value; // 初始化临时选择为当前选择
+  showModelSelector.value = true;
+};
+
+// 选择模型
+const selectModel = (modelId: string) => {
+  tempSelectedModel.value = modelId;
+};
+
+// 应用模型选择
+const applyModelSelection = () => {
+  selectedModel.value = tempSelectedModel.value;
+  showToast(`已切换到 ${availableModels.value.find(m => m.id === selectedModel.value)?.name} 模型`);
+  showModelSelector.value = false;
+};
+
+// 处理模型选择器模态蒙层的鼠标松开事件
+const handleModelSelectorOverlayMouseUp = (event) => {
+  // 只有当鼠标按下和松开的是同一个元素，且是蒙层本身时，才关闭弹窗
+  if (modalMouseDownTarget.value === event.target && event.target.classList.contains('modal-overlay')) {
+    showModelSelector.value = false;
+  }
+  // 重置鼠标按下的目标
+  modalMouseDownTarget.value = null;
 };
 
 </script>
@@ -3534,8 +3664,8 @@ const insertChatHistory = async (title: string, chatId: string) => {
             background-color: rgba(14, 165, 233, 0.2);
           }
         }
-        &.prompt-library-btn {
-          background-color: rgba(249, 115, 22, 0.1);
+        &.heartbeat-simulator-btn {
+          background-color: rgba(255, 107, 149, 0.1);
           color: #f97316;
           
           svg {
@@ -3543,7 +3673,7 @@ const insertChatHistory = async (title: string, chatId: string) => {
           }
           
           &:hover {
-            background-color: rgba(249, 115, 22, 0.2);
+            background-color: rgba(255, 107, 149, 0.2);
           }
         }
         &.cloud-model-btn {
@@ -3611,6 +3741,36 @@ const insertChatHistory = async (title: string, chatId: string) => {
           &:hover {
             background: rgba(0, 0, 0, 0.05);
             color: #333;
+          }
+          
+          /* 模型切换按钮特殊样式 */
+          &.model-switch-btn {
+            color: var(--accent-color);
+            
+            &:hover {
+              background: rgba(255, 107, 149, 0.1);
+              color: #FF5B85;
+            }
+          }
+          
+          /* 提示词库按钮特殊样式 */
+          &.prompt-library-btn {
+            color: var(--primary-color);
+            
+            &:hover {
+              background: rgba(70, 101, 238, 0.1);
+              color: #3a56d4;
+            }
+          }
+          
+          /* 文件管理按钮特殊样式 */
+          &.upload-btn {
+            color: #42b983; /* 翡翠绿色 */
+            
+            &:hover {
+              background: rgba(66, 185, 131, 0.1);
+              color: #35a574;
+            }
           }
         }
         
@@ -4407,26 +4567,25 @@ const insertChatHistory = async (title: string, chatId: string) => {
 .prompt-library {
   .prompt-library-toolbar {
     display: flex;
-    align-items: center;
     flex-wrap: wrap;
     gap: 10px;
-    margin-bottom: 16px;
+    margin-bottom: 20px;
     
     .prompt-search {
-      flex: 1;
-      min-width: 200px;
       position: relative;
+      flex: 1; // 让搜索框占据剩余空间
+      min-width: 200px;
       
       .prompt-search-input {
         width: 100%;
-        padding: 8px 12px 8px 32px;
+        padding: 8px 12px 8px 36px;
         border: 1px solid #ddd;
         border-radius: 6px;
         font-size: 0.9rem;
         
         &:focus {
           outline: none;
-          border-color: #4665ee;
+          border-color: var(--primary-color);
         }
       }
       
@@ -4442,96 +4601,121 @@ const insertChatHistory = async (title: string, chatId: string) => {
     .prompt-filters {
       display: flex;
       flex-wrap: wrap;
-      gap: 6px;
+      gap: 5px;
       
       .filter-btn {
         padding: 6px 12px;
-        background: #f0f0f3;
-        border: none;
+        border: 1px solid #ddd;
         border-radius: 6px;
+        background: white;
         font-size: 0.85rem;
         cursor: pointer;
-        color: #666;
+        transition: all 0.2s;
         
         &:hover {
-          background: #e5e5e5;
+          background: rgba(0, 0, 0, 0.05);
         }
         
         &.active {
-          background: #4665ee;
+          background: var(--primary-color);
           color: white;
+          border-color: var(--primary-color);
         }
       }
     }
     
     .add-prompt-btn {
-      padding: 6px 12px;
-      background: #4665ee;
-      color: white;
-      border: none;
-      border-radius: 6px;
       display: flex;
       align-items: center;
       gap: 6px;
-      font-size: 0.9rem;
+      padding: 6px 12px;
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.85rem;
       cursor: pointer;
-      transition: all 0.2s;
       white-space: nowrap;
+      transition: all 0.2s;
       
       &:hover {
-        background: #3a56d4;
+        opacity: 0.9;
         transform: translateY(-1px);
+      }
+      
+      svg {
+        stroke: currentColor;
+      }
+    }
+    
+    /* 模型切换按钮样式 */
+    .model-switch-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: var(--accent-color);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+      
+      &:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+      }
+      
+      svg {
+        stroke: currentColor;
       }
     }
   }
   
-  .prompts-container {
-    border: 1px solid #eee;
-    border-radius: 6px;
-    padding: 16px;
-    
-    .prompts-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 16px;
-    }
+  .prompts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
     
     .prompt-card {
+      border: 1px solid #eee;
+      border-radius: 8px;
+      overflow: hidden;
+      transition: all 0.2s;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
       display: flex;
       flex-direction: column;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      transition: all 0.2s;
-      background-color: #fff;
-      height: 100%;
-      overflow: hidden;
+      cursor: pointer;
       
       &:hover {
-        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
         transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       }
       
       .prompt-card-header {
+        padding: 10px 12px;
+        color: white;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 12px;
-        border-bottom: 1px solid #eee;
         
         .prompt-name {
-          font-weight: bold;
-          font-size: 1rem;
-          color: white;
-          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+          font-weight: 600;
+          font-size: 0.95rem;
+          max-width: 180px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
         
         .prompt-category-badge {
-          padding: 4px 8px;
-          border-radius: 4px;
+          padding: 2px 6px;
+          border-radius: 12px;
+          background: rgba(255, 255, 255, 0.2);
           font-size: 0.7rem;
-          color: white;
-          background: rgba(255, 255, 255, 0.25);
-          backdrop-filter: blur(4px);
+          font-weight: 500;
         }
       }
       
@@ -4542,67 +4726,69 @@ const insertChatHistory = async (title: string, chatId: string) => {
         flex-direction: column;
         
         .prompt-description {
-          font-size: 0.9rem;
-          color: #555;
-          margin-bottom: 12px;
+          font-size: 0.85rem;
+          margin-bottom: 8px;
+          color: #666;
+          line-height: 1.5;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
           flex: 1;
         }
         
         .prompt-tags {
           display: flex;
           flex-wrap: wrap;
-          gap: 6px;
-          margin-top: auto;
+          gap: 4px;
           
           .prompt-tag {
-            font-size: 0.8rem;
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.05);
             color: #666;
-            padding: 4px 8px;
-            border-radius: 4px;
-            background: #f5f5f5;
+            white-space: nowrap;
           }
           
           .prompt-tag-more {
-            font-size: 0.8rem;
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.03);
             color: #888;
-            padding: 4px 8px;
-            background: #f0f0f0;
-            border-radius: 4px;
           }
         }
       }
       
       .prompt-card-footer {
+        padding: 8px 12px;
+        border-top: 1px solid #eee;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 10px 12px;
-        background: #f9f9f9;
-        border-top: 1px solid #eee;
         
         .prompt-usage {
+          font-size: 0.7rem;
+          color: #888;
           display: flex;
           align-items: center;
           gap: 4px;
-          font-size: 0.8rem;
-          color: #888;
           
           svg {
-            width: 14px;
-            height: 14px;
-            margin-right: 4px;
+            stroke: #888;
           }
         }
         
         .prompt-actions {
           display: flex;
-          gap: 8px;
+          gap: 4px;
           
           .prompt-action-btn {
             background: transparent;
             border: none;
-            width: 28px;
-            height: 28px;
+            width: 26px;
+            height: 26px;
             border-radius: 4px;
             display: flex;
             align-items: center;
@@ -4614,481 +4800,184 @@ const insertChatHistory = async (title: string, chatId: string) => {
             &:hover {
               background: rgba(0, 0, 0, 0.05);
               color: #333;
-              
-              &.copy-btn {
-                color: #4665ee;
-              }
-              
-              &.edit-btn {
-                color: #f97316;
-              }
-              
-              &.delete-btn {
-                color: #dc2626;
-              }
+            }
+            
+            &.copy-btn:hover {
+              color: var(--primary-color);
+              background: rgba(70, 101, 238, 0.1);
+            }
+            
+            &.edit-btn:hover {
+              color: #4CAF50;
+              background: rgba(76, 175, 80, 0.1);
+            }
+            
+            &.delete-btn:hover {
+              color: #F44336;
+              background: rgba(244, 67, 54, 0.1);
             }
           }
         }
       }
     }
-    
-    .no-prompts {
-      padding: 30px;
-      text-align: center;
-      color: #888;
-      font-size: 0.9rem;
-    }
+  }
+  
+  .no-prompts {
+    text-align: center;
+    padding: 30px;
+    color: #888;
+    font-style: italic;
   }
 }
 
 /* 提示词预览提示 */
 .prompt-preview-tooltip {
   position: fixed;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
-  padding: 0;
   z-index: 1000;
-  pointer-events: none;
-  overflow: hidden;
-  border: 1px solid #eee;
-  max-width: 600px;
-  width: 600px;
-  height: 500px; /* 固定总高度 */
-  display: flex;
-  flex-direction: column;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  padding: 16px;
+  width: 320px;
+  max-height: 400px;
+  overflow-y: auto;
   
   .preview-header {
-    background: #f5f5f5;
-    padding: 10px 14px;
-    font-size: 0.9rem;
-    color: #555;
-    font-weight: bold;
+    font-weight: 600;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
     border-bottom: 1px solid #eee;
-    display: flex;
-    align-items: center;
-    flex-shrink: 0; /* 防止标题被压缩 */
-    
-    &::before {
-      content: "";
-      display: inline-block;
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background-color: #f97316;
-      margin-right: 8px;
-    }
   }
   
   .preview-content {
-    padding: 14px 16px;
     font-size: 0.9rem;
-    color: #444;
-    flex: 1; /* 占满剩余空间 */
-    overflow-y: auto;
-    white-space: pre-wrap;
     line-height: 1.6;
-  }
-  
-  .dark-mode & {
-    background: #2a2a2a;
-    border-color: #444;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
-    
-    .preview-header {
-      background: #333;
-      color: #eee;
-      border-bottom-color: #444;
-    }
-    
-    .preview-content {
-      color: #ddd;
-    }
+    color: #333;
+    white-space: pre-wrap;
   }
 }
 
-/* 新增/编辑提示词弹出层 */
+/* 提示词编辑模态框 */
 .prompt-modal {
-  max-width: 500px;
-  
   .prompt-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    
     .form-group {
-      margin-bottom: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
       
       label {
-        display: block;
         font-size: 0.9rem;
-        margin-bottom: 6px;
+        font-weight: 500;
         color: #555;
       }
       
-      input[type="text"], textarea {
-        width: 100%;
-        padding: 8px 10px;
+      input, textarea, select {
+        padding: 8px 12px;
         border: 1px solid #ddd;
         border-radius: 6px;
         font-size: 0.9rem;
         
         &:focus {
           outline: none;
-          border-color: #4665ee;
+          border-color: var(--primary-color);
         }
       }
       
       textarea {
+        min-height: 120px;
         resize: vertical;
       }
     }
   }
 }
 
-.prompts-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 16px;
-}
-
-.prompt-tag-more {
-  color: #888;
-  font-size: 0.8rem;
-  margin-left: 4px;
-}
-
-.chat-input {
-  flex: 1;
-  border: none;
-  background: transparent;
-  font-size: 1.05rem;
-  resize: none;
-  outline: none;
-  line-height: 1.5;
-  max-height: 150px;
-  min-height: 36px;
-  padding: 8px 0;
-}
-
-.user-message .message-content {
-  background: linear-gradient(135deg, #FF9A8B, #FF6B95); // 保持所有模式下用户消息气泡颜色一致
-}
-
-/* 预览容器样式 */
-.preview-container {
-  border: 2px dashed #ddd;
-  border-radius: 6px;
-  padding: 10px;
-  background: var(--background-color, #f9f9f9);
-  color: var(--text-color, #333);
-  transition: all 0.3s;
-  overflow: hidden;
-  
-  &.dark-mode {
-    background: #1a1a1a;
-    color: #f0f0f0;
-    border-color: #333;
-    
-    .preview-message {
-      &.user {
-        background: linear-gradient(135deg, #FF9A8B, #FF6B95); // 使用相同的渐变粉色系
-        color: #f0f0f0;
-      }
-      
-      &.bot {
-        background: #2a2a2a;
-        color: #f0f0f0;
-      }
-    }
-  }
-  
-  &.font-size-small {
-    font-size: 0.85rem;
-    
-    .preview-message {
-      padding: 8px;
-    }
-  }
-  
-  &.font-size-medium {
-    font-size: 0.9rem;
-    
-    .preview-message {
-      padding: 10px;
-    }
-  }
-  
-  &.font-size-large {
-    font-size: 1rem;
-    
-    .preview-message {
-      padding: 12px;
-    }
-  }
-  
-  &.font-spacing-compact {
-    .preview-message {
-      margin-bottom: 6px;
-      line-height: 1.4;
-    }
-  }
-  
-  &.font-spacing-normal {
-    .preview-message {
-      margin-bottom: 8px;
-      line-height: 1.6;
-    }
-  }
-  
-  &.font-spacing-relaxed {
-    .preview-message {
-      margin-bottom: 10px;
-      line-height: 1.8;
-    }
-  }
-  
-  &.font-family-default {
-    font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  }
-  
-  &.font-family-serif {
-    font-family: 'Noto Serif SC', serif;
-  }
-  
-  &.font-family-mono {
-    font-family: 'Fira Code', 'Source Code Pro', monospace;
-  }
-  
-  .preview-header {
+/* 模型选择器样式 */
+.model-selector {
+  .models-container {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-bottom: 10px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-    margin-bottom: 10px;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 60vh;
+    overflow-y: auto;
+    padding: 4px;
     
-    .preview-logo {
-      font-size: 1.1rem;
-      font-weight: bold;
-      color: var(--primary-color, #4665ee);
-    }
-  }
-  
-  .preview-message {
-    padding: 10px;
-    border-radius: 8px;
-    margin-bottom: 8px;
-    
-    &.user {
-      background: linear-gradient(135deg, #FF9A8B, #FF6B95); // 使用相同的渐变粉色系
-      color: white;
-      align-self: flex-end;
-      margin-left: auto;
-    }
-    
-    &.bot {
-      background: white;
-      color: #333;
+    .model-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px;
       border: 1px solid #eee;
-    }
-  }
-}
-
-/* 侧边栏样式 - 翡翠绿主题特别处理 */
-.theme-emerald .sidebar {
-  background: var(--secondary-color, #ecfdf5); // 使用次要颜色
-  border-right: 1px solid rgba(5, 150, 105, 0.2); // 翡翠绿特定边框
-  box-shadow: 0 0 15px rgba(16, 185, 129, 0.08); // 特定阴影
-  
-  .sidebar-header {
-    border-bottom: 1px solid rgba(5, 150, 105, 0.2);
-    background: rgba(16, 185, 129, 0.05);
-  }
-  
-  .history-item {
-    border: 1px solid rgba(16, 185, 129, 0.1);
-    
-    &:hover {
-      background: rgba(16, 185, 129, 0.08);
-      border-color: rgba(16, 185, 129, 0.2);
-    }
-  }
-  
-  .sidebar-footer {
-    border-top: 1px solid rgba(5, 150, 105, 0.2);
-    background: rgba(16, 185, 129, 0.05);
-    
-    .settings-btn,
-    .profile-btn {
-      border: 1px solid rgba(16, 185, 129, 0.2);
+      border-radius: 12px;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s;
       
       &:hover {
-        background: rgba(16, 185, 129, 0.1);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
       }
-    }
-  }
-}
-
-/* 侧边栏样式 - 晚霞橙主题特别处理 */
-.theme-sunset .sidebar {
-  background: var(--secondary-color, #fff1e6); // 使用次要颜色
-  border-right: 1px solid rgba(234, 88, 12, 0.15); // 橙色系边框
-  box-shadow: 0 0 15px rgba(249, 115, 22, 0.07); // 特定阴影
-  
-  .sidebar-header {
-    border-bottom: 1px solid rgba(234, 88, 12, 0.15);
-    background: rgba(249, 115, 22, 0.05);
-  }
-  
-  .history-item {
-    border: 1px solid rgba(234, 88, 12, 0.1);
-    
-    &:hover {
-      background: rgba(249, 115, 22, 0.07);
-      border-color: rgba(234, 88, 12, 0.2);
-    }
-  }
-  
-  .sidebar-footer {
-    border-top: 1px solid rgba(234, 88, 12, 0.15);
-    background: rgba(249, 115, 22, 0.05);
-    
-    .settings-btn,
-    .profile-btn {
-      border: 1px solid rgba(234, 88, 12, 0.15);
       
-      &:hover {
-        background: rgba(249, 115, 22, 0.09);
+      &.selected {
+        border-color: var(--primary-color);
+        background: rgba(70, 101, 238, 0.05);
       }
-    }
-  }
-}
-
-/* 侧边栏样式 - 石墨黑主题特别处理 */
-.theme-graphite .sidebar {
-  background: var(--secondary-color, #f1f5f9); // 使用次要颜色
-  border-right: 1px solid rgba(51, 65, 85, 0.15); // 石墨系边框
-  box-shadow: 0 0 15px rgba(51, 65, 85, 0.08); // 特定阴影
-  
-  .sidebar-header {
-    border-bottom: 1px solid rgba(51, 65, 85, 0.15);
-    background: rgba(51, 65, 85, 0.05);
-  }
-  
-  .history-item {
-    border: 1px solid rgba(51, 65, 85, 0.1);
-    
-    &:hover {
-      background: rgba(51, 65, 85, 0.07);
-      border-color: rgba(51, 65, 85, 0.2);
-    }
-  }
-  
-  .sidebar-footer {
-    border-top: 1px solid rgba(51, 65, 85, 0.15);
-    background: rgba(51, 65, 85, 0.05);
-    
-    .settings-btn,
-    .profile-btn {
-      border: 1px solid rgba(51, 65, 85, 0.15);
       
-      &:hover {
-        background: rgba(51, 65, 85, 0.09);
+      .model-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
       }
-    }
-  }
-}
-
-/* Markdown 样式 */
-.markdown-body {
-  h1, h2, h3, h4, h5, h6 {
-    margin-top: 16px;
-    margin-bottom: 8px;
-    font-weight: 600;
-    line-height: 1.25;
-  }
-  
-  h1 {
-    font-size: 1.5em;
-  }
-  
-  h2 {
-    font-size: 1.25em;
-  }
-  
-  h3 {
-    font-size: 1.1em;
-  }
-  
-  ul, ol {
-    padding-left: 20px;
-    margin: 8px 0;
-  }
-  
-  li {
-    margin: 4px 0;
-  }
-  
-  p {
-    margin: 8px 0;
-  }
-  
-  a {
-    color: #4665ee;
-    text-decoration: none;
-    
-    &:hover {
-      text-decoration: underline;
-    }
-  }
-  
-  blockquote {
-    border-left: 3px solid #ddd;
-    padding-left: 12px;
-    color: #666;
-    margin: 12px 0;
-  }
-  
-  img {
-    max-width: 100%;
-    margin: 8px 0;
-    border-radius: 6px;
-  }
-  
-  table {
-    border-collapse: collapse;
-    width: 100%;
-    margin: 12px 0;
-    
-    th, td {
-      border: 1px solid #ddd;
-      padding: 8px;
-      text-align: left;
-    }
-    
-    th {
-      background-color: #f5f5f5;
-    }
-    
-    tr:nth-child(even) {
-      background-color: #fafafa;
-    }
-  }
-  
-  code {
-    background-color: rgba(0, 0, 0, 0.05);
-    padding: 2px 4px;
-    border-radius: 4px;
-    font-family: monospace;
-  }
-  
-  pre {
-    background-color: #f1f1f1;
-    padding: 12px;
-    border-radius: 8px;
-    overflow-x: auto;
-    margin: 10px 0;
-    
-    code {
-      background-color: transparent;
-      padding: 0;
+      
+      .model-details {
+        flex: 1;
+        overflow: hidden;
+        
+        .model-name {
+          font-weight: 600;
+          font-size: 1rem;
+          margin-bottom: 4px;
+        }
+        
+        .model-description {
+          font-size: 0.85rem;
+          color: #666;
+          margin-bottom: 8px;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+        
+        .model-tags {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px;
+          
+          .model-tag {
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.05);
+            color: #666;
+          }
+        }
+      }
+      
+      .model-select-indicator {
+        position: absolute;
+        right: 16px;
+        top: 16px;
+        color: var(--primary-color);
+      }
     }
   }
 }
