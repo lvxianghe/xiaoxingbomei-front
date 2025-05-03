@@ -1,7 +1,8 @@
 <template>
-  <div class="chat-container" 
+  <div 
+    class="chat-container"
     :class="[
-      `theme-${currentTheme}`, 
+      `theme-${currentTheme}`,
       isDarkMode ? 'dark-mode' : '',
       `font-size-${currentFontSettings.size}`,
       `font-spacing-${currentFontSettings.spacing}`,
@@ -194,6 +195,48 @@
         </div>
       </div>
       
+      <!-- 激活的系统提示词显示区域 -->
+      <div class="active-prompt-container" v-if="activeSystemPrompt">
+        <div class="active-prompt-badge">
+          <div class="active-prompt-header">
+            <div class="active-prompt-info">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+              </svg>
+              <div class="prompt-title-wrapper">
+                <div class="prompt-label-row">
+                  <span class="prompt-title-label">系统提示词</span>
+                  <button class="active-prompt-close" @click="clearActiveSystemPrompt">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  </button>
+                </div>
+                <span class="active-prompt-title" :title="activeSystemPrompt.name">{{ activeSystemPrompt.name }}</span>
+                <div class="prompt-actions-row">
+                  <div class="active-prompt-category" :style="{ backgroundColor: getPromptCategoryColor(activeSystemPrompt.category) }">
+                    {{ getCategoryLabel(activeSystemPrompt.category) }}
+                  </div>
+                  <button class="active-prompt-toggle" @click="showActivePromptBadge = !showActivePromptBadge">
+                    <span>{{ showActivePromptBadge ? '收起' : '展开' }}</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="6 9 12 15 18 9" v-if="!showActivePromptBadge"></polyline>
+                      <polyline points="18 15 12 9 6 15" v-else></polyline>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="active-prompt-content" v-if="showActivePromptBadge">
+            <pre class="active-prompt-text">{{ activeSystemPrompt.content }}</pre>
+          </div>
+        </div>
+
+      </div>
       <!-- 中央输入区域 -->
       <div class="chat-input-wrapper" :class="{
         'with-messages': messages.length > 0,
@@ -201,7 +244,7 @@
       }">
         <div class="chat-input-area">
           <div class="mode-selector-inner">
-            <button class="mode-btn deep-think-btn" @click="showToast('深度思考功能开发中')" title="深度思考">
+            <button class="mode-btn deep-think-btn" @click="isDeepThinking = !isDeepThinking" :class="{ 'active': isDeepThinking }" title="深度思考">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10"></circle>
                 <path d="M12 2a4.5 4.5 0 0 0 0 9 4.5 4.5 0 0 1 0 9 10 10 0 0 0 0-18z"></path>
@@ -216,12 +259,6 @@
                 <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
               </svg>
               <span>联网搜索</span>
-            </button>
-            <button class="mode-btn heartbeat-simulator-btn" @click="showToast('哄哄模拟器功能开发中')" title="哄哄模拟器">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-              </svg>
-              <span>哄哄模拟器</span>
             </button>
             <button class="mode-btn cloud-model-btn" @click="useCloudModel = !useCloudModel" :class="{ 'active': useCloudModel }" title="云端大模型">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -701,7 +738,7 @@
     <div class="modal-overlay" v-if="showPromptLibrary" @mousedown="handleModalOverlayMouseDown" @mouseup="handlePromptLibraryOverlayMouseUp">
       <div class="modal-container prompt-library" @click.stop style="max-width: 900px; width: 90%; max-height: 80vh;">
         <div class="modal-header">
-          <h3>提示词库</h3>
+          <h3>系统提示词库</h3>
           <button class="modal-close" @click="showPromptLibrary = false">×</button>
         </div>
         <div class="modal-body" style="max-height: calc(80vh - 120px); overflow-y: auto;">
@@ -789,16 +826,9 @@
                   </div>
                 </div>
                 <div class="prompt-card-footer">
-                  <div class="prompt-usage">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M12 20h9"></path>
-                      <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
-                    </svg>
-                    <span>已使用 {{ prompt.usageCount }} 次</span>
-                  </div>
                   <div class="prompt-actions">
-                    <button class="prompt-action-btn copy-btn" @click.stop="copyPromptToInput(prompt)" title="复制到输入框">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <button class="prompt-action-btn copy-btn" @click.stop="copyPromptToInput(prompt)" title="设置为系统提示词">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
                         <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
                       </svg>
@@ -901,7 +931,7 @@
             <div 
               v-for="model in availableModels" 
               :key="model.id" 
-              :class="['model-item', selectedModel === model.id ? 'selected' : '']"
+              :class="['model-item', tempSelectedModel === model.id ? 'selected' : '']"
               @click="selectModel(model.id)"
             >
               <div class="model-icon" :style="{ backgroundColor: model.color }">
@@ -913,6 +943,7 @@
               </div>
               <div class="model-details">
                 <div class="model-name">{{ model.name }}</div>
+                <div class="model-provider" v-if="model.provider">提供商: {{ model.provider }}</div>
                 <div class="model-description">{{ model.description }}</div>
                 <div class="model-tags">
                   <span 
@@ -924,10 +955,26 @@
                   </span>
                 </div>
               </div>
-              <div class="model-select-indicator" v-if="selectedModel === model.id">
+              <div class="model-select-indicator" v-if="tempSelectedModel === model.id">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="20 6 9 17 4 12"></polyline>
                 </svg>
+              </div>
+              <div class="model-actions" v-if="tempSelectedModel === model.id">
+                <button class="edit-model-btn" @click.stop="(event) => editModel(model, event)">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                  </svg>
+                </button>
+                <button class="delete-model-btn" @click.stop="(event) => confirmDeleteModel(model, event)">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                  </svg>
+                </button>
               </div>
             </div>
           </div>
@@ -935,6 +982,66 @@
         <div class="modal-footer">
           <button class="cancel-btn" @click="showModelSelector = false">取消</button>
           <button class="confirm-btn" @click="applyModelSelection">确认选择</button>
+          <button class="add-model-btn" @click="openAddModelModal">添加模型</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 添加模型弹出层 -->
+    <div class="modal-overlay" v-if="showAddModelModal" @mousedown="handleModalOverlayMouseDown" @mouseup="handleAddModelModalOverlayMouseUp">
+      <div class="modal-container add-model-modal" @click.stop style="max-width: 600px; width: 90%;">
+        <div class="modal-header">
+          <h3>{{ isEditingModel ? '编辑模型' : '添加新模型' }}</h3>
+          <button class="modal-close" @click="showAddModelModal = false">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="model-form">
+            <div class="form-group">
+              <label for="modelName">模型名称</label>
+              <input type="text" id="modelName" v-model="newModel.modelName" placeholder="输入模型名称" :disabled="isEditingModel">
+              <small v-if="isEditingModel" class="field-hint">模型名称不可修改</small>
+            </div>
+            
+            <div class="form-group">
+              <label for="modelProvider">提供商</label>
+              <input type="text" id="modelProvider" v-model="newModel.modelProvider" placeholder="输入模型提供商" :disabled="isEditingModel">
+              <small v-if="isEditingModel" class="field-hint">提供商不可修改</small>
+            </div>
+            
+            <div class="form-group">
+              <label for="modelDescription">模型描述</label>
+              <textarea id="modelDescription" v-model="newModel.modelDescription" placeholder="描述此模型的特点与适用场景" rows="3"></textarea>
+            </div>
+            
+            <div class="form-group">
+              <label for="modelTags">标签 (用逗号分隔)</label>
+              <input type="text" id="modelTags" v-model="modelTagsInput" placeholder="例如: 高效,创意,翻译">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="cancel-btn" @click="showAddModelModal = false">取消</button>
+          <button class="confirm-btn" @click="saveNewModel">保存</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 删除模型确认弹窗 -->
+    <div class="modal-overlay" v-if="showDeleteModelConfirm" @mousedown="handleModalOverlayMouseDown" @mouseup="handleDeleteModelConfirmOverlayMouseUp">
+      <div class="modal-container delete-model-confirm" @click.stop style="max-width: 400px; width: 90%;">
+        <div class="modal-header">
+          <h3>确认删除</h3>
+          <button class="modal-close" @click="cancelDeleteModel">×</button>
+        </div>
+        <div class="modal-body">
+          <p class="confirm-message">
+            您确定要删除模型 <strong>{{ modelToDelete?.modelName }}</strong> 吗？
+          </p>
+          <p class="confirm-warning">此操作不可撤销，删除后将无法恢复。</p>
+        </div>
+        <div class="modal-footer">
+          <button class="cancel-btn" @click="cancelDeleteModel">取消</button>
+          <button class="delete-btn" @click="deleteModel">删除</button>
         </div>
       </div>
     </div>
@@ -1039,6 +1146,7 @@ const inputRef = ref<HTMLTextAreaElement | null>(null);
 const sidebarCollapsed = ref(false);
 const useCloudModel = ref(false); // 是否使用云端大模型
 const streamController = ref<AbortController | null>(null); // 用于控制流式请求
+const isDeepThinking = ref(false); // 是否开启深度思考模式
 
 // 后端服务器配置
 
@@ -1251,6 +1359,11 @@ const adjustTextareaHeight = () => {
 // 监听输入内容变化，自动调整高度
 watch(userInput, () => {
   nextTick(adjustTextareaHeight);
+});
+
+// 监听深度思考状态变化
+watch(isDeepThinking, (newValue) => {
+  // 不需要弹窗提示
 });
 
 // 切换侧边栏
@@ -1471,6 +1584,19 @@ const chatWithServer = async (prompt: string) => {
       prompt: prompt
     });
     
+    // 添加模型信息
+    if (selectedModel.value) {
+      const modelInfo = availableModels.value.find(m => m.id === selectedModel.value);
+      if (modelInfo) {
+        queryParams.append('modelProvider', modelInfo.provider);
+        queryParams.append('modelName', modelInfo.name);
+      }
+    }
+    
+    // 添加系统提示词
+    if (activeSystemPrompt.value) {
+      queryParams.append('systemPrompt', activeSystemPrompt.value.content);
+    }
     
     // 添加会话ID
     if (selectedHistoryItem.value !== null) {
@@ -1507,8 +1633,11 @@ const chatWithServer = async (prompt: string) => {
     
     // 发送消息时已设置isTyping = true，这里不需要重复设置
     
+    // 准备查询参数
+    queryParams.append('isStream', isDeepThinking.value ? 'true' : 'false');
+    
     // 发送GET请求并处理流式响应
-    const response = await fetch(`${API_BASE_URL}/ai/chat/chat_for_stream?${queryParams.toString()}`, {
+    const response = await fetch(`${API_BASE_URL}/ai/chat?${queryParams.toString()}`, {
       method: 'GET',
       headers: {
         'Accept': 'text/html, text/plain, */*'
@@ -2132,9 +2261,14 @@ onMounted(() => {
   if (inputRef.value) {
     inputRef.value.addEventListener('input', adjustTextareaHeight);
   }
-  
   // 获取所有聊天历史
   fetchAllChatHistory();
+  
+  // 获取所有可用模型
+  fetchAllModels();
+  
+  // 获取所有提示词
+  fetchAllPrompts();
 });
 
 // 打开主题设置
@@ -2218,53 +2352,7 @@ const loadSavedThemeSettings = () => {
 };
 
 // 预定义的提示词模板
-const promptTemplates = ref<PromptTemplate[]>([
-  {
-    id: 1,
-    name: '专业文档写作',
-    description: '创建专业的文档、报告或白皮书',
-    content: '请以[专业领域]专家的身份，创建一份关于[主题]的详细文档。包含以下部分：\n1. 执行摘要\n2. 背景信息\n3. 关键发现\n4. 详细分析\n5. 结论与建议\n使用专业但清晰的语言，并提供具体示例或数据支持你的分析。',
-    category: 'writing',
-    tags: ['专业', '报告', '文档'],
-    usageCount: 125
-  },
-  {
-    id: 2,
-    name: '代码优化',
-    description: '分析并优化现有代码',
-    content: '请分析以下[编程语言]代码并提供优化建议：\n```\n[在此粘贴代码]\n```\n\n请从以下几个方面提供优化：\n1. 性能优化\n2. 代码简洁性\n3. 可读性与可维护性\n4. 最佳实践遵循\n5. 潜在错误修复\n\n对于每个建议，请说明原因并提供改进后的代码示例。',
-    category: 'coding',
-    tags: ['代码', '优化', '开发'],
-    usageCount: 98
-  },
-  {
-    id: 3,
-    name: '决策分析框架',
-    description: '系统分析复杂决策问题',
-    content: '我需要就[决策问题]做出决定。请使用SWOT分析框架帮我分析：\n\n1. 优势：这个选项有什么优点？\n2. 劣势：存在什么潜在缺点或限制？\n3. 机会：选择此方案可能带来什么机会？\n4. 威胁：有哪些潜在风险或外部因素需要考虑？\n\n分析完成后，请基于上述因素提供一个明确的建议和行动计划。',
-    category: 'analysis',
-    tags: ['决策', '分析', '规划'],
-    usageCount: 67
-  },
-  {
-    id: 4,
-    name: '创意头脑风暴',
-    description: '生成创新想法和解决方案',
-    content: '我需要关于[主题/问题]的创新想法。请帮我进行头脑风暴，生成至少10个不同的创意或解决方案。\n\n要求：\n1. 想法应该多样化且有创意\n2. 包括一些常规思路和一些突破性思路\n3. 对每个想法提供简短说明\n4. 考虑不同角度和方法\n5. 指出特别有潜力的想法\n\n不要受限于常规思维，鼓励提出大胆创新的概念。',
-    category: 'creativity',
-    tags: ['创意', '头脑风暴', '创新'],
-    usageCount: 83
-  },
-  {
-    id: 5,
-    name: '学习辅导助手',
-    description: '深入解释复杂概念',
-    content: '我正在学习[主题/概念]，但遇到了一些困难。请你作为一位经验丰富的老师，帮我解释这个概念。\n\n请按照以下步骤进行：\n1. 用简单的语言解释核心概念\n2. 提供一个形象的类比或比喻\n3. 展示一个简单的例子\n4. 然后提供一个更复杂的例子\n5. 解释这个概念在实际中的应用\n6. 提出3-5个问题供我思考，以检验我的理解\n\n如果有任何专业术语，请同时提供解释。',
-    category: 'education',
-    tags: ['学习', '教育', '解释'],
-    usageCount: 132
-  }
-]);
+const promptTemplates = ref<PromptTemplate[]>([]);
 
 // 提示词库相关状态
 const showPromptLibrary = ref(false);
@@ -2284,47 +2372,18 @@ const editingPrompt = ref<PromptTemplate>({
   category: 'general',
   tags: [],
   usageCount: 0
-
 });
 
+// 当前激活的系统提示词
+const activeSystemPrompt = ref<PromptTemplate | null>(null);
+const showActivePromptBadge = ref(true);
+
+// 模型选择器相关状态
 // 模型选择器相关状态
 const showModelSelector = ref(false);
-const selectedModel = ref('gpt-3.5-turbo');
+const selectedModel = ref('');
 const tempSelectedModel = ref(''); // 临时存储选择的模型，确认后才应用
-const availableModels = ref([
-  {
-    id: 'gpt-3.5-turbo',
-    name: 'GPT-3.5 Turbo',
-    description: '优质通用模型，善于创意写作和基础编程',
-    color: '#10b981', // 绿色
-    tags: ['快速', '经济', '通用'],
-    tokenLimit: 4096
-  },
-  {
-    id: 'gpt-4',
-    name: 'GPT-4',
-    description: '高级通用模型，擅长复杂任务和深度分析',
-    color: '#8b5cf6', // 紫色
-    tags: ['高级', '复杂推理', '详尽'],
-    tokenLimit: 8192
-  },
-  {
-    id: 'claude-3-opus',
-    name: 'Claude 3 Opus',
-    description: 'Anthropic顶级模型，专注学术和复杂推理',
-    color: '#3b82f6', // 蓝色
-    tags: ['专业', '学术', '最新'],
-    tokenLimit: 16000
-  },
-  {
-    id: 'llama-3-70b',
-    name: 'Llama 3 (70B)',
-    description: 'Meta开源大模型，本地部署友好',
-    color: '#f97316', // 橙色
-    tags: ['开源', '本地', '平衡'],
-    tokenLimit: 4096
-  }
-]);
+const availableModels = ref([]);
 
 // 添加模态蒙层的鼠标事件处理
 const modalMouseDownTarget = ref(null);
@@ -2510,25 +2569,21 @@ const hidePromptPreview = () => {
 
 // 复制提示词到输入框
 const copyPromptToInput = (prompt: PromptTemplate) => {
-  userInput.value = prompt.content;
+  // 设置当前激活的系统提示词
+  activeSystemPrompt.value = { ...prompt };
+  showActivePromptBadge.value = true;
   showPromptLibrary.value = false;
   showPreview.value = false; // 确保关闭预览
   
-  // 增加使用次数
-  const index = promptTemplates.value.findIndex(p => p.id === prompt.id);
-  if (index !== -1) {
-    promptTemplates.value[index].usageCount++;
-  }
-  
-  // 聚焦输入框
-  nextTick(() => {
-    if (inputRef.value) {
-      inputRef.value.focus();
-    }
-  });
-  
   // 显示成功提示
-  showToast(`已复制"${prompt.name}"到输入框`);
+  showToast(`已设置"${prompt.name}"为当前系统提示词`);
+};
+
+// 清除当前激活的系统提示词
+const clearActiveSystemPrompt = () => {
+  activeSystemPrompt.value = null;
+  showActivePromptBadge.value = false;
+  showToast('已清除系统提示词');
 };
 
 // 打开新增提示词模态框
@@ -2556,7 +2611,7 @@ const editPrompt = (prompt: PromptTemplate) => {
 };
 
 // 保存提示词
-const savePrompt = () => {
+const savePrompt = async () => {
   // 验证表单
   if (!editingPrompt.value.name.trim()) {
     showToast('请输入提示词名称');
@@ -2577,30 +2632,63 @@ const savePrompt = () => {
     editingPrompt.value.tags = [];
   }
   
-  if (isEditingPrompt.value) {
-    // 更新现有提示词
-    const index = promptTemplates.value.findIndex(p => p.id === editingPrompt.value.id);
-    if (index !== -1) {
-      promptTemplates.value[index] = { ...editingPrompt.value };
-      showToast('提示词更新成功');
-    }
-  } else {
-    // 添加新提示词
-    promptTemplates.value.push({ ...editingPrompt.value });
-    showToast('提示词添加成功');
-  }
+  // 显示保存中提示
+  showToast(isEditingPrompt.value ? '正在更新提示词...' : '正在添加提示词...');
   
-  showPromptModal.value = false;
+  // 保存到服务器
+  const success = await savePromptToServer(editingPrompt.value);
+  
+  if (success) {
+    if (isEditingPrompt.value) {
+      // 更新现有提示词
+      const index = promptTemplates.value.findIndex(p => p.id === editingPrompt.value.id);
+      if (index !== -1) {
+        promptTemplates.value[index] = { ...editingPrompt.value };
+      }
+    } else {
+      // 添加新提示词
+      promptTemplates.value.push({ ...editingPrompt.value });
+    }
+    
+    // 关闭模态框
+    showPromptModal.value = false;
+  }
 };
 
 // 删除提示词
-const deletePrompt = (id: number) => {
+// 删除提示词
+const deletePrompt = async (id: number | string) => {
   if (confirm('确定要删除这个提示词吗？')) {
-    const index = promptTemplates.value.findIndex(p => p.id === id);
-    if (index !== -1) {
-      const promptName = promptTemplates.value[index].name;
-      promptTemplates.value.splice(index, 1);
-      showToast(`提示词"${promptName}"已删除`);
+    try {
+      // 发送删除请求到后端API
+      const response = await fetch(`${API_BASE_URL}/ai/prompt/deleteSystemPrompt`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          promptId: id.toString()
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (result.code === "200") {
+        // 删除成功，从本地列表移除
+        const index = promptTemplates.value.findIndex(p => p.id === id);
+        if (index !== -1) {
+          const promptName = promptTemplates.value[index].name;
+          promptTemplates.value.splice(index, 1);
+          showToast(`提示词"${promptName}"已删除`);
+        }
+      } else {
+        // 删除失败
+        console.warn('删除提示词失败:', result);
+        showToast('删除提示词失败: ' + (result.userMessage || result.message || '请求错误'));
+      }
+    } catch (error) {
+      console.error('删除提示词请求错误:', error);
+      showToast('删除提示词失败，请检查网络连接');
     }
   }
 };
@@ -2833,6 +2921,66 @@ const insertChatHistory = async (title: string, chatId: string) => {
   }
 };
 
+// 根据模型提供商获取颜色
+const getModelProviderColor = (provider: string) => {
+  const colorMap: {[key: string]: string} = {
+    openai: '#10b981', // 绿色
+    ollama: '#8b5cf6', // 紫色
+    default: '#64748b' // 默认灰色
+  };
+  
+  return colorMap[provider.toLowerCase()] || colorMap.default;
+};
+
+// 从API获取模型列表
+const fetchAllModels = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/ai/model/getAllModels`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({})
+    });
+    
+    const result = await response.json();
+    
+    if (result.code === "200" && result.data) {
+      // 处理返回的模型数据
+      const modelList = result.data;
+      
+      // 转换格式并设置颜色
+      availableModels.value = modelList.map((model: any) => {
+        // 从标签字符串中分割出标签数组
+        const tags = model.modelTag ? model.modelTag.split(',') : [];
+        
+        return {
+          id: model.modelName,
+          name: model.modelName,
+          description: model.modelDescription,
+          color: getModelProviderColor(model.modelProvider),
+          provider: model.modelProvider,
+          tags: tags
+        };
+      });
+      
+      console.log('获取模型列表成功:', availableModels.value);
+      
+      // 如果没有选择模型，则默认选择第一个
+      if (!selectedModel.value && availableModels.value.length > 0) {
+        selectedModel.value = availableModels.value[0].id;
+      }
+    } else {
+      // 请求失败
+      console.warn('获取模型列表失败:', result);
+      showToast('获取模型列表失败：' + (result.userMessage || result.message || '请求错误'));
+    }
+  } catch (error) {
+    console.error('获取模型列表请求错误:', error);
+    showToast('获取模型列表失败，请检查网络连接');
+  }
+};
+
 // 打开模型选择器
 const openModelSelector = () => {
   tempSelectedModel.value = selectedModel.value; // 初始化临时选择为当前选择
@@ -2856,6 +3004,402 @@ const handleModelSelectorOverlayMouseUp = (event) => {
   // 只有当鼠标按下和松开的是同一个元素，且是蒙层本身时，才关闭弹窗
   if (modalMouseDownTarget.value === event.target && event.target.classList.contains('modal-overlay')) {
     showModelSelector.value = false;
+  }
+  // 重置鼠标按下的目标
+  modalMouseDownTarget.value = null;
+};
+
+// 从API获取所有提示词
+const fetchAllPrompts = async () => {
+  try {
+    // 显示加载提示
+    showToast('正在加载提示词库...');
+    
+    // 发送请求获取所有提示词
+    const response = await fetch(`${API_BASE_URL}/ai/prompt/getAllSystemPrompt`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({})
+    });
+    
+    const result = await response.json();
+    
+    if (result.code === "200" && result.data) {
+      // 清空当前提示词列表
+      promptTemplates.value = [];
+      
+      // 处理返回的提示词数据
+result.data.forEach((item: any) => {
+  // 将标签字符串转换为数组
+  const tags = item.promptTag ? item.promptTag.split(',').map((tag: string) => tag.trim()) : [];
+  
+  // 类型映射处理
+  let category = 'other';
+  const promptType = item.promptType || '';
+  
+  // 根据promptType映射为前端类别
+  if (promptType.includes('写作') || promptType.includes('文章')) {
+    category = 'writing';
+  } else if (promptType.includes('编程') || promptType.includes('代码')) {
+    category = 'coding';
+  } else if (promptType.includes('分析') || promptType.includes('数据')) {
+    category = 'analysis';
+  } else if (promptType.includes('创意') || promptType.includes('创作')) {
+    category = 'creativity';
+  } else if (promptType.includes('教育') || promptType.includes('学习')) {
+    category = 'education';
+  }
+  
+  // 转换为应用内的提示词格式并添加到列表
+  promptTemplates.value.push({
+    id: item.promptId, // 使用后端返回的ID
+    name: item.promptName,
+    description: item.promptDescription,
+    content: item.promptContent,
+    category: category, // 使用映射后的类别
+    tags: tags,
+    usageCount: 0 // 默认为0
+  });
+});
+      
+      console.log('成功加载提示词库:', promptTemplates.value);
+    } else {
+      console.warn('获取提示词失败:', result);
+      showToast('获取提示词失败: ' + (result.userMessage || result.message || '请求错误'));
+    }
+  } catch (error) {
+    console.error('获取提示词请求错误:', error);
+    showToast('获取提示词失败，请检查网络连接');
+  }
+};
+
+// 根据ID获取单个提示词
+const getSystemPromptById = async (promptId: string): Promise<PromptTemplate | null> => {
+  try {
+    // 发送请求获取提示词详情
+    const response = await fetch(`${API_BASE_URL}/ai/prompt/getSystemPromptById`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        promptId: promptId
+      })
+    });
+    
+    const result = await response.json();
+    
+    if (result.code === "200" && result.data) {
+      const item = result.data;
+      // 将标签字符串转换为数组
+      const tags = item.promptTag ? item.promptTag.split(',').map((tag: string) => tag.trim()) : [];
+      
+      // 类型映射处理
+      let category = 'other';
+      const promptType = item.promptType || '';
+      
+      // 根据promptType映射为前端类别
+      if (promptType.includes('写作') || promptType.includes('文章')) {
+        category = 'writing';
+      } else if (promptType.includes('编程') || promptType.includes('代码')) {
+        category = 'coding';
+      } else if (promptType.includes('分析') || promptType.includes('数据')) {
+        category = 'analysis';
+      } else if (promptType.includes('创意') || promptType.includes('创作')) {
+        category = 'creativity';
+      } else if (promptType.includes('教育') || promptType.includes('学习')) {
+        category = 'education';
+      }
+      
+      // 转换为应用内的提示词格式
+      return {
+        id: item.promptId,
+        name: item.promptName,
+        description: item.promptDescription,
+        content: item.promptContent,
+        category: category,
+        tags: tags,
+        usageCount: 0
+      };
+    } else {
+      console.warn('获取提示词详情失败:', result);
+      showToast('获取提示词详情失败: ' + (result.userMessage || result.message || '请求错误'));
+      return null;
+    }
+  } catch (error) {
+    console.error('获取提示词详情请求错误:', error);
+    showToast('获取提示词详情失败，请检查网络连接');
+    return null;
+  }
+};
+
+// 将后端提示词类型映射到前端类别
+const mapPromptTypeToCategory = (promptType: string): string => {
+  const typeMap: {[key: string]: string} = {
+    '写作': 'writing',
+    '文章': 'writing',
+    '编程': 'coding',
+    '代码': 'coding',
+    '分析': 'analysis',
+    '数据': 'analysis',
+    '创意': 'creativity',
+    '创作': 'creativity',
+    '教育': 'education',
+    '学习': 'education',
+    '客服': 'other',
+    '对话': 'other',
+    '旅游': 'other'
+  };
+  
+  // 如果没有匹配项，返回other
+  return typeMap[promptType] || 'other';
+};
+
+// 将前端类别映射回后端提示词类型
+const mapCategoryToPromptType = (category: string): string => {
+  const categoryMap: {[key: string]: string} = {
+    'writing': '写作',
+    'coding': '编程',
+    'analysis': '分析',
+    'creativity': '创意',
+    'education': '教育',
+    'other': '其他'
+  };
+  
+  // 如果没有匹配项，返回"其他"
+  return categoryMap[category] || '其他';
+};
+
+// 添加或更新提示词到后端
+const savePromptToServer = async (prompt: PromptTemplate): Promise<boolean> => {
+  try {
+    
+    // 构建提交数据
+let promptType = '其他'; // 默认类型
+const category = prompt.category;
+
+// 从前端类别映射回后端类型
+if (category === 'writing') {
+  promptType = '写作';
+} else if (category === 'coding') {
+  promptType = '编程';
+} else if (category === 'analysis') {
+  promptType = '分析';
+} else if (category === 'creativity') {
+  promptType = '创意';
+} else if (category === 'education') {
+  promptType = '教育';
+}
+
+const promptData = {
+  promptName: prompt.name,
+  promptType: promptType,
+  promptDescription: prompt.description,
+  promptTag: prompt.tags.join(','),
+  promptContent: prompt.content
+};
+    
+    // 发送请求添加提示词
+    const response = await fetch(`${API_BASE_URL}/ai/prompt/addSystemPrompt`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(promptData)
+    });
+    
+    const result = await response.json();
+    
+    if (result.code === "200" && result.data) {
+      // 添加成功，更新本地提示词的ID
+      prompt.id = result.data.promptId;
+      console.log('提示词保存成功:', result.data);
+      showToast('提示词保存成功: ' + (result.userMessage || '操作成功'));
+      return true;
+    } else {
+      console.warn('保存提示词失败:', result);
+      showToast('保存提示词失败: ' + (result.userMessage || result.message || '请求错误'));
+      return false;
+    }
+  } catch (error) {
+    console.error('保存提示词请求错误:', error);
+    showToast('保存提示词失败，请检查网络连接');
+    return false;
+  }
+};
+
+// 添加模型相关状态
+const showAddModelModal = ref(false);
+const newModel = ref({
+  modelName: '',
+  modelProvider: '',
+  modelDescription: '',
+  modelTag: ''
+});
+const modelTagsInput = ref('');
+const isEditingModel = ref(false); // 是否处于编辑模式
+
+// 处理添加模型弹窗蒙层的鼠标松开事件
+const handleAddModelModalOverlayMouseUp = (event) => {
+  // 只有当鼠标按下和松开的是同一个元素，且是蒙层本身时，才关闭弹窗
+  if (modalMouseDownTarget.value === event.target && event.target.classList.contains('modal-overlay')) {
+    showAddModelModal.value = false;
+  }
+  // 重置鼠标按下的目标
+  modalMouseDownTarget.value = null;
+};
+
+// 打开添加模型弹窗
+const openAddModelModal = () => {
+  // 重置表单数据，设置为新增模式
+  isEditingModel.value = false;
+  newModel.value = {
+    modelName: '',
+    modelProvider: '',
+    modelDescription: '',
+    modelTag: ''
+  };
+  modelTagsInput.value = '';
+  showAddModelModal.value = true;
+  showModelSelector.value = false; // 关闭模型选择器
+};
+
+// 编辑模型
+const editModel = (model, event) => {
+  // 设置为编辑模式
+  isEditingModel.value = true;
+  // 填充表单数据
+  newModel.value = {
+    modelName: model.name,
+    modelProvider: model.provider,
+    modelDescription: model.description,
+    modelTag: model.tags.join(',')
+  };
+  modelTagsInput.value = model.tags.join(',');
+  // 打开弹窗
+  showAddModelModal.value = true;
+  // 阻止事件冒泡，避免触发模型选择
+  if (event) event.stopPropagation();
+};
+
+// 保存新模型或更新现有模型
+const saveNewModel = async () => {
+  try {
+    // 验证表单
+    if (!newModel.value.modelName) {
+      showToast('请输入模型名称');
+      return;
+    }
+    
+    // 处理标签
+    newModel.value.modelTag = modelTagsInput.value;
+    
+    // 根据是否为编辑模式，选择不同的API接口
+    const apiUrl = isEditingModel.value ? 
+      `${API_BASE_URL}/ai/model/updateModel` : 
+      `${API_BASE_URL}/ai/model/addModel`;
+    
+    // 发送请求添加或更新模型
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(newModel.value)
+    });
+    
+    const result = await response.json();
+    
+    if (result.code === "200" && result.data) {
+      console.log(isEditingModel.value ? '模型更新成功:' : '模型添加成功:', result.data);
+      showToast(isEditingModel.value ? '模型更新成功' : '模型添加成功');
+      
+      // 关闭弹窗并刷新模型列表
+      showAddModelModal.value = false;
+      await fetchAllModels();
+    } else {
+      console.warn(isEditingModel.value ? '更新模型失败:' : '添加模型失败:', result);
+      showToast((isEditingModel.value ? '更新模型失败: ' : '添加模型失败: ') + 
+                (result.userMessage || result.message || '请求错误'));
+    }
+  } catch (error) {
+    console.error(isEditingModel.value ? '更新模型请求错误:' : '添加模型请求错误:', error);
+    showToast((isEditingModel.value ? '更新模型失败' : '添加模型失败') + '，请检查网络连接');
+  }
+};
+
+// 新增确认删除模型的弹窗
+const showDeleteModelConfirm = ref(false);
+const modelToDelete = ref<any>(null);
+
+// 显示删除确认弹窗
+const confirmDeleteModel = (model: any, event: Event) => {
+  modelToDelete.value = {
+    modelProvider: model.provider,
+    modelName: model.name
+  };
+  showDeleteModelConfirm.value = true;
+  if (event) event.stopPropagation();
+};
+
+// 删除模型
+const deleteModel = async () => {
+  try {
+    if (!modelToDelete.value) return;
+
+    // 发送请求删除模型
+    const response = await fetch(`${API_BASE_URL}/ai/model/deleteModel`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        modelProvider: modelToDelete.value.modelProvider,
+        modelName: modelToDelete.value.modelName
+      })
+    });
+
+    const result = await response.json();
+
+    if (result.code === "200") {
+      console.log('模型删除成功');
+      showToast('模型删除成功');
+      
+      // 关闭确认弹窗并刷新模型列表
+      showDeleteModelConfirm.value = false;
+      await fetchAllModels();
+      
+      // 如果删除的是当前选中的模型，重置选择
+      if (selectedModel.value === modelToDelete.value.modelName) {
+        if (availableModels.value.length > 0) {
+          selectedModel.value = availableModels.value[0].id;
+        } else {
+          selectedModel.value = '';
+        }
+      }
+    } else {
+      console.warn('删除模型失败:', result);
+      showToast('删除模型失败: ' + (result.userMessage || result.message || '请求错误'));
+    }
+  } catch (error) {
+    console.error('删除模型请求错误:', error);
+    showToast('删除模型失败，请检查网络连接');
+  }
+};
+
+// 取消删除
+const cancelDeleteModel = () => {
+  showDeleteModelConfirm.value = false;
+  modelToDelete.value = null;
+};
+
+// 处理删除模型确认弹窗蒙层的鼠标松开事件
+const handleDeleteModelConfirmOverlayMouseUp = (event) => {
+  // 只有当鼠标按下和松开的是同一个元素，且是蒙层本身时，才关闭弹窗
+  if (modalMouseDownTarget.value === event.target && event.target.classList.contains('modal-overlay')) {
+    cancelDeleteModel();
   }
   // 重置鼠标按下的目标
   modalMouseDownTarget.value = null;
@@ -3650,6 +4194,15 @@ const handleModelSelectorOverlayMouseUp = (event) => {
           &:hover {
             background-color: rgba(100, 80, 220, 0.2);
           }
+          
+          &.active {
+            background-color: #5140a7;
+            color: white;
+            
+            svg {
+              stroke: white;
+            }
+          }
         }
         
         &.web-search-btn {
@@ -3664,18 +4217,7 @@ const handleModelSelectorOverlayMouseUp = (event) => {
             background-color: rgba(14, 165, 233, 0.2);
           }
         }
-        &.heartbeat-simulator-btn {
-          background-color: rgba(255, 107, 149, 0.1);
-          color: #f97316;
-          
-          svg {
-            stroke: #f97316;
-          }
-          
-          &:hover {
-            background-color: rgba(255, 107, 149, 0.2);
-          }
-        }
+
         &.cloud-model-btn {
           background-color: rgba(25, 118, 210, 0.1);
           color: #1976d2;
@@ -3952,6 +4494,20 @@ const handleModelSelectorOverlayMouseUp = (event) => {
         background: linear-gradient(135deg, #FF8A7B, #FF5B85); // 悬停时稍微深一点
         transform: translateY(-1px);
         box-shadow: 0 4px 10px rgba(255, 107, 149, 0.4);
+      }
+    }
+    
+    .add-model-btn {
+      background: linear-gradient(135deg, #42b983, #2f9661);
+      border: none;
+      color: white;
+      box-shadow: 0 2px 8px rgba(66, 185, 131, 0.3);
+      margin-right: auto; // 将按钮推到左侧
+      
+      &:hover {
+        background: linear-gradient(135deg, #3ca876, #278255);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 10px rgba(66, 185, 131, 0.4);
       }
     }
   }
@@ -4768,18 +5324,6 @@ const handleModelSelectorOverlayMouseUp = (event) => {
         justify-content: space-between;
         align-items: center;
         
-        .prompt-usage {
-          font-size: 0.7rem;
-          color: #888;
-          display: flex;
-          align-items: center;
-          gap: 4px;
-          
-          svg {
-            stroke: #888;
-          }
-        }
-        
         .prompt-actions {
           display: flex;
           gap: 4px;
@@ -4947,7 +5491,7 @@ const handleModelSelectorOverlayMouseUp = (event) => {
           margin-bottom: 4px;
         }
         
-        .model-description {
+        .model-provider {
           font-size: 0.85rem;
           color: #666;
           margin-bottom: 8px;
@@ -4977,6 +5521,339 @@ const handleModelSelectorOverlayMouseUp = (event) => {
         right: 16px;
         top: 16px;
         color: var(--primary-color);
+      }
+      
+      .model-actions {
+        position: absolute;
+        right: 16px;
+        bottom: 16px;
+        display: flex;
+        gap: 8px;
+        
+        .edit-model-btn {
+          width: 28px;
+          height: 28px;
+          border-radius: 50%;
+          background-color: rgba(255, 255, 255, 0.9);
+          border: 1px solid #eee;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.2s;
+          color: #555;
+          
+          &:hover {
+            background-color: white;
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            color: var(--primary-color);
+          }
+        }
+        .delete-model-btn {
+          width: 28px;
+          height: 28px;
+          border-radius: 50%;
+          background-color: rgba(255, 255, 255, 0.9);
+          border: 1px solid #eee;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.2s;
+          color: #555;
+          
+          &:hover {
+            background-color: white;
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            color: #EB5757;
+          }
+        }
+      }
+    }
+  }
+}
+
+/* 添加模型弹出层样式 */
+.add-model-modal {
+  .model-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-height: 70vh;
+    overflow-y: auto;
+    padding: 0 4px;
+    
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      
+      label {
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: #555;
+      }
+      
+      input, textarea {
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+        background-color: #f9f9fb;
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+        
+        &:focus {
+          outline: none;
+          border-color: #42b983;
+          background-color: #fff;
+          box-shadow: 0 0 0 3px rgba(66, 185, 131, 0.1);
+        }
+        
+        &::placeholder {
+          color: #aaa;
+        }
+      }
+      
+      textarea {
+        min-height: 100px;
+        resize: vertical;
+      }
+    }
+  }
+}
+
+/* 删除模型确认弹窗样式 */
+.delete-model-confirm {
+  .confirm-message {
+    font-size: 1rem;
+    margin-bottom: 16px;
+    text-align: center;
+    
+    strong {
+      color: #EB5757;
+    }
+  }
+  
+  .confirm-warning {
+    font-size: 0.9rem;
+    color: #888;
+    text-align: center;
+    background-color: rgba(235, 87, 87, 0.1);
+    padding: 8px 12px;
+    border-radius: 8px;
+    border-left: 3px solid #EB5757;
+  }
+  
+  .modal-footer {
+    .delete-btn {
+      background: linear-gradient(135deg, #EB5757, #CC4444);
+      border: none;
+      color: white;
+      box-shadow: 0 2px 8px rgba(235, 87, 87, 0.3);
+      
+      &:hover {
+        background: linear-gradient(135deg, #DF4444, #BB3333);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 10px rgba(235, 87, 87, 0.4);
+      }
+    }
+  }
+}
+
+.field-hint {
+  color: #888;
+  font-size: 0.8rem;
+  margin-top: 4px;
+}
+
+/* 激活的系统提示词显示区域 */
+.active-prompt-container {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  padding: 0;
+  max-width: 360px;
+  z-index: 1000;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  
+  .active-prompt-badge {
+    display: flex;
+    flex-direction: column;
+    
+    .active-prompt-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      padding: 16px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+      background-color: #f8f9fa;
+      
+      .active-prompt-info {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        width: 100%;
+        
+        svg {
+          color: var(--primary-color);
+          flex-shrink: 0;
+          margin-top: 4px;
+        }
+        
+        .prompt-title-wrapper {
+          display: flex;
+          flex-direction: column;
+          line-height: 1.3;
+          width: 100%;
+          
+          .prompt-label-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+            width: 100%;
+            
+            .prompt-title-label {
+              font-size: 0.8rem;
+              color: var(--primary-color);
+              font-weight: 500;
+              background-color: rgba(70, 101, 238, 0.08);
+              padding: 4px 10px;
+              border-radius: 4px;
+              display: inline-block;
+              letter-spacing: 0.3px;
+              border: 1px solid rgba(70, 101, 238, 0.15);
+              box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+            }
+            
+            .active-prompt-close {
+              background: transparent;
+              border: none;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              width: 24px;
+              height: 24px;
+              border-radius: 50%;
+              color: #777;
+              transition: all 0.2s ease;
+              
+              &:hover {
+                background: rgba(220, 53, 69, 0.1);
+                color: #dc3545;
+              }
+            }
+          }
+          
+          .active-prompt-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #333;
+            width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            margin-bottom: 8px;
+          }
+          
+          .prompt-actions-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            
+            .active-prompt-category {
+              padding: 3px 8px;
+              border-radius: 20px;
+              font-size: 0.75rem;
+              color: white;
+              font-weight: 500;
+              display: flex;
+              align-items: center;
+              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+            
+            .active-prompt-toggle {
+              background: transparent;
+              border: none;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              gap: 3px;
+              color: #666;
+              font-size: 0.8rem;
+              padding: 4px 8px;
+              border-radius: 6px;
+              transition: all 0.2s ease;
+              white-space: nowrap;
+              min-width: 60px;
+              
+              &:hover {
+                background: rgba(0, 0, 0, 0.05);
+                color: #333;
+              }
+              
+              svg {
+                transition: transform 0.2s ease;
+                flex-shrink: 0;
+                margin-top: 0;
+              }
+              
+              span {
+                display: inline-block;
+              }
+            }
+          }
+        }
+      }
+      
+      .active-prompt-actions {
+        display: none;
+      }
+    }
+    
+    .active-prompt-content {
+      padding: 16px;
+      background: white;
+      
+      .active-prompt-text {
+        font-size: 0.9rem;
+        line-height: 1.5;
+        color: #444;
+        max-height: 300px;
+        overflow-y: auto;
+        padding-right: 8px;
+        margin: 0;
+        font-family: inherit;
+        white-space: pre-wrap;
+        word-break: break-word;
+        
+        /* 自定义滚动条 */
+        &::-webkit-scrollbar {
+          width: 6px;
+        }
+        
+        &::-webkit-scrollbar-track {
+          background: #f1f1f1;
+          border-radius: 10px;
+        }
+        
+        &::-webkit-scrollbar-thumb {
+          background: #ccc;
+          border-radius: 10px;
+        }
+        
+        &::-webkit-scrollbar-thumb:hover {
+          background: #999;
+        }
       }
     }
   }
