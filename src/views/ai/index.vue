@@ -17,30 +17,30 @@
         </div>
       </div>
       
-      <!-- 哄哄模拟器模块 -->
-      <div class="grid-item comforter" @click="navigateTo('/ai/comforter')">
+      <!-- 哄哄模拟器模块 - 待开发 -->
+      <div class="grid-item comforter coming-soon-item" @click="showModuleUnderDevelopment('更多AI功能')">
         <div class="content">
           <div class="comforter-icon">💕</div>
-          <span>哄哄模拟器</span>
-          <div class="description">情感安慰与鼓励</div>
+          <span>更多AI功能</span>
+          <div class="description">持续开发中</div>
         </div>
       </div>
       
       <!-- 智能客服模块 -->
-      <div class="grid-item customer-service" @click="showModuleUnderDevelopment('智能客服')">
+      <div class="grid-item customer-service" @click="showModuleUnderDevelopment('更多AI功能')">
         <div class="content">
           <div class="service-icon">🎭</div>
-          <span>智能客服</span>
-          <div class="description">自动回复与问题解答</div>
+          <span>更多AI功能</span>
+          <div class="description">持续开发中</div>
         </div>
       </div>
       
-      <!-- ChatPDF模块 -->
-      <div class="grid-item chat-pdf" @click="navigateTo('/ai/chat-pdf')">
+      <!-- ChatPDF模块 - 待开发 -->
+      <div class="grid-item chat-pdf coming-soon-item" @click="showModuleUnderDevelopment('更多AI功能')">
         <div class="content">
           <div class="pdf-icon">📄</div>
-          <span>ChatPDF</span>
-          <div class="description">PDF智能问答分析</div>
+          <span>更多AI功能</span>
+          <div class="description">持续开发中</div>
         </div>
       </div>
       
@@ -249,118 +249,99 @@
       }
     }
     
-    // 哄哄模拟器模块样式
+    // 哄哄模拟器模块样式 - 待开发状态
     .comforter {
       grid-column: 3 / 4;
       grid-row: 1 / 2;
-      background: linear-gradient(135deg, #fd79a8, #e84393);
-      box-shadow: 0 4px 15px rgba(253, 121, 168, 0.3);
       
-      .content {
-        .comforter-icon {
-          font-size: 60px;
-          margin-bottom: 16px;
-          filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
-          animation: heartbeat 1.5s infinite alternate;
-        }
+      &.coming-soon-item {
+        background: linear-gradient(135deg, #a7b4c7 0%, #c8d6e5 100%);
+        border: 2px dashed #6c7a89;
         
-        span {
-          color: white;
-          font-weight: 600;
-          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-        
-        .description {
-          color: rgba(255, 255, 255, 0.9);
-        }
-      }
-      
-      &:hover {
-        background: linear-gradient(135deg, #e84393, #fd79a8);
-        
-        .comforter-icon {
-          animation: heartbeat 1s infinite alternate;
+        .content {
+          .comforter-icon {
+            font-size: 60px;
+            margin-bottom: 16px;
+            opacity: 0.8;
+            animation: pulse 2s infinite alternate;
+          }
+          
+          span {
+            color: #2c3e50;
+            font-size: 24px;
+            font-weight: 500;
+          }
+          
+          .description {
+            color: #34495e;
+          }
         }
       }
     }
     
-    // 智能客服模块样式
+    // 智能客服模块样式 - 待开发状态
     .customer-service {
       grid-column: 4 / 5;
       grid-row: 1 / 2;
-      background: linear-gradient(135deg, #00b894, #00cec9);
-      box-shadow: 0 4px 15px rgba(0, 184, 148, 0.3);
+      background: linear-gradient(135deg, #a7b4c7 0%, #c8d6e5 100%);
+      border: 2px dashed #6c7a89;
       
       .content {
         .service-icon {
           font-size: 60px;
           margin-bottom: 16px;
-          filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
-          transition: transform 0.3s;
+          opacity: 0.8;
+          animation: pulse 2s infinite alternate;
         }
         
         span {
-          color: white;
-          font-weight: 600;
-          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+          color: #2c3e50;
+          font-size: 24px;
+          font-weight: 500;
         }
         
         .description {
-          color: rgba(255, 255, 255, 0.9);
-        }
-      }
-      
-      &:hover {
-        background: linear-gradient(135deg, #00cec9, #00b894);
-        
-        .service-icon {
-          transform: rotate(360deg);
-          transition: transform 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+          color: #34495e;
         }
       }
     }
     
-    // ChatPDF模块样式
+    // ChatPDF模块样式 - 待开发状态
     .chat-pdf {
       grid-column: 3 / 4;
       grid-row: 2 / 3;
-      background: linear-gradient(135deg, #4b6cb7, #182848);
-      box-shadow: 0 4px 15px rgba(75, 108, 183, 0.3);
       
-      .content {
-        .pdf-icon {
-          position: relative;
-          font-size: 56px;
-          margin-bottom: 16px;
-          filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
-          
-          &:after {
-            content: '💬';
-            position: absolute;
-            font-size: 24px;
-            bottom: -10px;
-            right: -15px;
-            filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.5));
+      &.coming-soon-item {
+        background: linear-gradient(135deg, #a7b4c7 0%, #c8d6e5 100%);
+        border: 2px dashed #6c7a89;
+        
+        .content {
+          .pdf-icon {
+            position: relative;
+            font-size: 60px;
+            margin-bottom: 16px;
+            opacity: 0.8;
+            animation: pulse 2s infinite alternate;
+            
+            &:after {
+              content: '💬';
+              position: absolute;
+              font-size: 24px;
+              bottom: -10px;
+              right: -15px;
+              opacity: 0.8;
+            }
           }
-        }
-        
-        span {
-          color: white;
-          font-weight: 600;
-          letter-spacing: 0.5px;
-          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-        }
-        
-        .description {
-          color: rgba(255, 255, 255, 0.9);
-        }
-      }
-      
-      &:hover {
-        background: linear-gradient(135deg, #5d7ec9, #243b6b);
-        
-        .pdf-icon {
-          animation: floating 2s ease-in-out infinite;
+          
+          span {
+            color: #2c3e50;
+            font-size: 24px;
+            font-weight: 500;
+          }
+          
+          .description {
+            color: #34495e;
+          }
         }
       }
     }

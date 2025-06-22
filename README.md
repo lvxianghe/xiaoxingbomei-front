@@ -1,10 +1,9 @@
-# 小型博美AI前端项目
-
-这是一个基于Vue 3 + TypeScript开发的多功能AI服务平台，集成了多种智能AI应用场景，为用户提供便捷、智能的服务体验。
+# 小型博美AI 前端
 
 ## 项目介绍
-
-小型博美AI平台是一个综合性AI服务平台，旨在为用户提供多种AI智能应用服务。平台集成了智能聊天助手、情感安慰、文档智能分析等多种功能模块，采用现代化前端技术栈开发，提供流畅、美观的用户界面和交互体验。
+作为我个人大模型应用开发学习，前端项目
+”小型博美“是一个综合性AI服务平台，旨在为用户提供多种AI智能应用服务。
+平台集成了智能聊天助手、情感安慰、智能客服、文档智能分析等多种功能模块，采用现代化前端技术栈开发，提供流畅、美观的用户界面和交互体验。
 
 ## 功能模块
 
@@ -12,31 +11,20 @@
 
 - **小型博美** - 智能AI助手，提供自然语言交互和问答服务
 - **哄哄模拟器** - 提供情感安慰和心理支持的AI模拟系统
+- *智能客服* - 智能化的客户服务
 - **ChatPDF** - 智能PDF文档分析和问答系统
 - **更多功能模块** - 持续开发中...
 
-## 技术栈
 
-- **前端框架**：Vue 3 + TypeScript
-- **UI组件库**：Element Plus
-- **路由管理**：Vue Router 4
-- **状态管理**：Pinia
-- **构建工具**：Vite 4
-- **CSS预处理器**：Less
-- **HTTP客户端**：Axios
-- **进度指示器**：NProgress
-
-# 文档
+## 设计
 语雀地址：
-# 架构设计
-## 版本
+### 整体架构设计
+<img width="816" alt="image" src="https://github.com/user-attachments/assets/802d70c5-82ce-4cc9-884d-ffb085f150af" />
+
+### 技术栈
  - nodejs：18.20.6
  - npm：10.8.2
  - pnpm：10.2.0
-
-
-## 技术点
- - 包管理：pnpm
  - 脚手架工具：vite4
  - 框架：vue3
  - 状态管理器：pinia
@@ -45,16 +33,8 @@
  - Css样式：Less、Postcss
  - 代码规范：Eslint、prettier、StyleLint
  - 提交规范：CommitLint、Husky、LintStaged
- - 企业级中后台最佳模版：vite4+Pinia+Vue3+Element-Plus、TypeScript
- - Package.json：每个依赖项具体配置和作用
- - 打包优化最佳配置：Vite.config.ts、dist目录最优解、chunk分包和拆包
- - 图标库的依赖加载：unplugin-icons/vite
- - 依赖按需加载： unplugin-auto-import/vite，可自动导入使用到的vue、vue-router、pinia api等依赖
- - 组件按需导入：unplugin-vue-component，无论是第三方UI组件还是自定义组件都可实现自动按需导入以及TS语法提示，全局引入组件库，使用起来非常方便，缺点是产物体积大，对性能要求较高的项目不友好；按需引入可以减少体积
- - 脚手架工具：如何从0到1开发一个脚手架，类比业界的vue-cli、create-react-app
- - vscode使用技巧、代码、浏览器调试技巧
 
-## 工程目录
+### 工程目录
 
 | 备注                 | 层级1      | 层级2       | 层级3    | 层级4 |
 | -------------------- | ---------- | ----------- | -------- | ----- |
@@ -79,18 +59,23 @@
 
 
 ## AI模块截图
+### 入口
+<img width="1276" alt="image" src="https://github.com/user-attachments/assets/e2d4f690-9692-4416-a73c-17c5307649ed" />
 
-### AI中心
-![AI中心页面](https://github.com/user-attachments/assets/98613bd8-cae3-41d8-94fb-f0f918ce35b3)
 
 ### 小型博美
-智能AI助手，提供自然语言交互和问答服务
+<img width="1280" alt="image" src="https://github.com/user-attachments/assets/079502b6-9607-4154-8fab-dc97f472bade" />
+
+
+### 智能客服
+
 
 ### 哄哄模拟器
-提供情感安慰和心理支持的AI模拟系统
+<img width="1280" alt="image" src="https://github.com/user-attachments/assets/c68fa188-8b53-49fd-97fc-aa6e33ff0533" />
+
 
 ### ChatPDF
-智能PDF文档分析和问答系统
+
 
 
 

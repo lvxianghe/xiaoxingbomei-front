@@ -2,8 +2,6 @@ import { RouteRecordRaw, createRouter, createWebHistory } from 'vue-router';
 import NProgress from 'nprogress';
 import 'nprogress/nprogress.css';
 import aiRoutes from './modules/ai'
-import comforterRoutes from './modules/ai-comforter'
-import chatPDFRoutes from './modules/ai-chatpdf'
 import pomeranianRoutes from './modules/ai-pomeranian'
 
 // 配置路由
@@ -17,10 +15,6 @@ const routes: Array<RouteRecordRaw> = [
 
 // 添加AI模块路由
 routes.push(aiRoutes);
-// 添加哄哄模拟器路由
-routes.push(comforterRoutes);
-// 添加ChatPDF路由
-routes.push(chatPDFRoutes);
 // 添加小型博美路由
 routes.push(pomeranianRoutes);
 
@@ -38,7 +32,7 @@ router.beforeEach((to, _from, next) => {
     NProgress.start();
     // 设置页面标题
     document.title = `${to.meta.title || '小型博美'} - AI平台`;
-    next();
+        next();
 });
 
 router.afterEach((_to) => {
