@@ -1541,10 +1541,8 @@ const chatWithServer = async (prompt: string) => {
       }
     }
     
-    // 添加系统提示词
+    // 添加系统提示词ID
     if (activeSystemPrompt.value) {
-      queryParams.append('systemPrompt', activeSystemPrompt.value.content);
-      // 添加系统提示词ID
       queryParams.append('systemPromptId', activeSystemPrompt.value.id.toString());
     }
     
