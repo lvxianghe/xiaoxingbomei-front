@@ -275,16 +275,48 @@
           </div>
           
           <div class="input-row">
-            <textarea 
-              v-model="userInput" 
-              class="chat-input" 
-              placeholder="给 小型博美 发送消息" 
-              @keydown.enter.prevent="sendMessage"
-              rows="1"
-              ref="inputRef"
-            ></textarea>
+            <!-- 选中的文件展示 -->
+            <div class="selected-files" v-if="selectedFiles.length > 0">
+              <div 
+                v-for="(file, index) in selectedFiles" 
+                :key="`file-${index}`"
+                class="selected-file-item"
+              >
+                <div class="file-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                  </svg>
+                </div>
+                <span class="file-name">{{ file.name }}</span>
+                <span class="file-size">({{ formatFileSize(file.size) }})</span>
+                <button class="remove-file-btn" @click="removeSelectedFile(index)" title="移除文件">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              </div>
+            </div>
             
-            <div class="input-tools">
+            <div 
+              class="input-container"
+              :class="{ 'dragging': isDragging }"
+              @drop="handleFileDrop"
+              @dragover.prevent
+              @dragenter.prevent="isDragging = true"
+              @dragleave.prevent="isDragging = false"
+            >
+              <textarea 
+                v-model="userInput" 
+                class="chat-input" 
+                placeholder="给 小型博美 发送消息（支持拖拽文件上传）" 
+                @keydown.enter.prevent="sendMessage"
+                rows="1"
+                ref="inputRef"
+              ></textarea>
+              
+              <div class="input-tools">
               <!-- 模型切换按钮 -->
               <button class="tool-btn model-switch-btn" @click="openModelSelector" title="模型切换">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -298,7 +330,22 @@
                   <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
                 </svg>
               </button>
-              <button class="tool-btn upload-btn" @click="openFileManager" title="管理文件">
+              <button class="tool-btn upload-btn" @click="triggerFileUpload" title="上传文件">
+                <input 
+                  ref="fileInputRef" 
+                  type="file" 
+                  multiple 
+                  accept="image/*,.pdf,.doc,.docx,.txt,.xlsx,.xls" 
+                  @change="handleFileSelect" 
+                  style="display: none;"
+                />
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+              </button>
+              <button class="tool-btn file-manager-btn" @click="openFileManager" title="管理文件">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                   <polyline points="14 2 14 8 20 8"></polyline>
@@ -313,6 +360,7 @@
                   <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
                 </svg>
               </button>
+              </div>
             </div>
           </div>
         </div>
@@ -1091,10 +1139,15 @@ const messages = ref<Message[]>([]);
 const isTyping = ref(false);
 const chatContentRef = ref<HTMLElement | null>(null);
 const inputRef = ref<HTMLTextAreaElement | null>(null);
+const fileInputRef = ref<HTMLInputElement | null>(null);
 const sidebarCollapsed = ref(false);
 const useCloudModel = ref(false); // 是否使用云端大模型
 const streamController = ref<AbortController | null>(null); // 用于控制流式请求
 const isDeepThinking = ref(false); // 是否开启流式输出模式
+
+// 文件上传相关状态
+const selectedFiles = ref<File[]>([]);
+const isDragging = ref(false);
 
 // 后端服务器配置
 
@@ -1474,6 +1527,7 @@ const sendMessage = async () => {
   if (!userInput.value.trim()) return;
   
   const userMessage = userInput.value.trim();
+  const hasFiles = selectedFiles.value.length > 0;
   userInput.value = '';
   
   // 调整输入框高度
@@ -1489,10 +1543,17 @@ const sendMessage = async () => {
     await startNewChat();
   }
   
+  // 构建用户消息内容（包含文件信息）
+  let userMessageContent = userMessage;
+  if (hasFiles) {
+    const fileNames = selectedFiles.value.map(file => file.name).join(', ');
+    userMessageContent += `\n\n📎 上传了 ${selectedFiles.value.length} 个文件: ${fileNames}`;
+  }
+  
   // 添加用户消息到消息列表
   messages.value.push({
     role: 'user',
-    content: userMessage,
+    content: userMessageContent,
     time: timeStr
   });
   
@@ -1527,29 +1588,29 @@ const sendMessage = async () => {
 // 与服务器通信
 const chatWithServer = async (prompt: string) => {
   try {
-    // 准备查询参数
-    const queryParams = new URLSearchParams({
-      prompt: prompt
-    });
+    // 准备FormData以支持文件上传
+    const formData = new FormData();
+    formData.append('prompt', prompt);
+    formData.append('isStream', isDeepThinking.value ? 'true' : 'false');
     
     // 添加模型信息
     if (selectedModel.value) {
       const modelInfo = availableModels.value.find(m => m.id === selectedModel.value);
       if (modelInfo) {
-        queryParams.append('modelProvider', modelInfo.provider);
-        queryParams.append('modelName', modelInfo.name);
+        formData.append('modelProvider', modelInfo.provider);
+        formData.append('modelName', modelInfo.name);
       }
     }
     
     // 添加系统提示词ID
     if (activeSystemPrompt.value) {
-      queryParams.append('systemPromptId', activeSystemPrompt.value.id.toString());
+      formData.append('systemPromptId', activeSystemPrompt.value.id.toString());
     }
     
     // 添加会话ID
     if (selectedHistoryItem.value !== null) {
       const currentChatId = chatHistory.value[selectedHistoryItem.value].id.toString();
-      queryParams.append('chatId', currentChatId);
+      formData.append('chatId', currentChatId);
       console.log('使用会话ID:', currentChatId, '类型:', typeof chatHistory.value[selectedHistoryItem.value].id);
       
       // 调试chatHistory
@@ -1558,6 +1619,14 @@ const chatWithServer = async (prompt: string) => {
     } else {
       console.error('未选择会话，无法发送消息');
       throw new Error('未选择会话');
+    }
+    
+    // 添加文件到FormData
+    if (selectedFiles.value.length > 0) {
+      selectedFiles.value.forEach(file => {
+        formData.append('files', file);
+      });
+      console.log('添加了', selectedFiles.value.length, '个文件到请求中');
     }
     
     // 创建AbortController以便需要时可以中止请求
@@ -1579,14 +1648,10 @@ const chatWithServer = async (prompt: string) => {
       time: timeStr
     });
     
-    // 发送消息时已设置isTyping = true，这里不需要重复设置
-    
-    // 准备查询参数
-    queryParams.append('isStream', isDeepThinking.value ? 'true' : 'false');
-    
-    // 发送GET请求并处理流式响应
-    const response = await fetch(`${API_BASE_URL}/ai/chat?${queryParams.toString()}`, {
-      method: 'GET',
+    // 发送POST请求并处理流式响应
+    const response = await fetch(`${API_BASE_URL}/ai/chat`, {
+      method: 'POST',
+      body: formData,
       headers: {
         'Accept': 'text/html, text/plain, */*'
       },
@@ -2146,6 +2211,82 @@ const openUploadModal = () => {
     description: ''
   };
   showFileUploadModal.value = true;
+};
+
+// 触发文件选择
+const triggerFileUpload = () => {
+  if (fileInputRef.value) {
+    fileInputRef.value.click();
+  }
+};
+
+// 处理文件选择
+const handleFileSelect = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  if (target.files && target.files.length > 0) {
+    const files = Array.from(target.files);
+    
+    // 检查文件大小（限制单个文件最大10MB）
+    const maxFileSize = 10 * 1024 * 1024; // 10MB
+    const validFiles = files.filter(file => {
+      if (file.size > maxFileSize) {
+        showToast(`文件 ${file.name} 超过10MB限制，已跳过`);
+        return false;
+      }
+      return true;
+    });
+    
+    if (validFiles.length > 0) {
+      selectedFiles.value.push(...validFiles);
+      showToast(`已选择 ${validFiles.length} 个文件`);
+    }
+    
+    // 清空input，允许重复选择同一文件
+    target.value = '';
+  }
+};
+
+// 处理文件拖拽
+const handleFileDrop = (event: DragEvent) => {
+  event.preventDefault();
+  isDragging.value = false;
+  
+  if (event.dataTransfer && event.dataTransfer.files.length > 0) {
+    const files = Array.from(event.dataTransfer.files);
+    
+    // 过滤支持的文件类型和大小
+    const maxFileSize = 10 * 1024 * 1024; // 10MB
+    const validFiles = files.filter(file => {
+      const extension = file.name.toLowerCase().split('.').pop();
+      const isSupported = ['pdf', 'doc', 'docx', 'txt', 'xlsx', 'xls', 'jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extension || '');
+      
+      if (!isSupported) {
+        return false;
+      }
+      
+      if (file.size > maxFileSize) {
+        showToast(`文件 ${file.name} 超过10MB限制，已跳过`);
+        return false;
+      }
+      
+      return true;
+    });
+    
+    if (validFiles.length > 0) {
+      selectedFiles.value.push(...validFiles);
+      showToast(`已添加 ${validFiles.length} 个文件`);
+    }
+    
+    if (files.length > validFiles.length) {
+      showToast('部分文件格式不支持或文件过大，已跳过');
+    }
+  }
+};
+
+// 移除选中的文件
+const removeSelectedFile = (index: number) => {
+  selectedFiles.value.splice(index, 1);
+  showToast('已移除文件');
 };
 
 // 上传文件（模拟）
@@ -3158,7 +3299,7 @@ let promptData: any = {
   promptContent: prompt.content,
   functionToolId: prompt.functionToolId || '' // 添加功能工具ID字段
 };
-
+    
 // 如果是编辑模式，使用更新接口并添加promptId
 if (isUpdate) {
   apiUrl = `${API_BASE_URL}/ai/prompt/updateSystemPrompt`;
@@ -3180,7 +3321,7 @@ if (isUpdate) {
     if ((result.code === "0" || result.code === "200") && result.data) {
       // 成功，更新本地提示词的ID（新增时需要）
       if (!isUpdate) {
-        prompt.id = result.data.promptId;
+      prompt.id = result.data.promptId;
       }
       console.log('提示词保存成功:', result.data);
       showToast(result.message || (isUpdate ? '提示词更新成功' : '提示词添加成功'));
@@ -3409,7 +3550,7 @@ const handleDeleteModelConfirmOverlayMouseUp = (event) => {
 
   &.theme-sunset {
     --primary-color: #f97316;
-    --secondary-color: #fff1e6; // 更明显的橙色背景
+    --secondary-color: #fff7ed; // 更明显的橙色背景
     --background-color: #fffaf5; // 调整为略带橙色调的背景
     --text-color: #7c2d12; // 加深文本颜色
     --accent-color: #2563eb; // 更深的蓝色强调
@@ -4211,100 +4352,194 @@ const handleDeleteModelConfirmOverlayMouseUp = (event) => {
     
     .input-row {
       display: flex;
-      align-items: flex-end;
+      flex-direction: column;
       
-      .chat-input {
-        flex: 1;
-        border: none;
-        background: transparent;
-        font-size: 1.05rem;
-        resize: none;
-        outline: none;
-        line-height: 1.5;
-        max-height: 220px; // 增加最大高度
-        min-height: 60px; // 显著增加最小高度
-        padding: 15px 0 15px 10px; // 增加内边距并添加左侧内边距
-        overflow-y: auto;
-        text-align: left; // 确保文本左对齐
-      }
-      
-      .input-tools {
+      .selected-files {
         display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        align-self: flex-end;
-        margin-left: 8px;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 12px;
         
-        .tool-btn {
-          background: transparent;
-          border: none;
-          color: #666;
-          padding: 6px 8px;
-          margin-right: 6px;
-          border-radius: 4px;
-          cursor: pointer;
+        .selected-file-item {
           display: flex;
           align-items: center;
-          justify-content: center;
+          background: rgba(70, 101, 238, 0.1);
+          border: 1px solid rgba(70, 101, 238, 0.2);
+          border-radius: 8px;
+          padding: 6px 10px;
+          font-size: 0.9rem;
           
-          &:hover {
-            background: rgba(0, 0, 0, 0.05);
-            color: #333;
-          }
-          
-          /* 模型切换按钮特殊样式 */
-          &.model-switch-btn {
-            color: var(--accent-color);
-            
-            &:hover {
-              background: rgba(255, 107, 149, 0.1);
-              color: #FF5B85;
-            }
-          }
-          
-          /* 提示词库按钮特殊样式 */
-          &.prompt-library-btn {
+          .file-icon {
             color: var(--primary-color);
-            
-            &:hover {
-              background: rgba(70, 101, 238, 0.1);
-              color: #3a56d4;
-            }
+            margin-right: 6px;
+            display: flex;
+            align-items: center;
           }
           
-          /* 文件管理按钮特殊样式 */
-          &.upload-btn {
-            color: #42b983; /* 翡翠绿色 */
+          .file-name {
+            color: #333;
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+          
+          .file-size {
+            color: #666;
+            font-size: 0.8rem;
+            margin-left: 4px;
+          }
+          
+          .remove-file-btn {
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            margin-left: 8px;
+            padding: 2px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
             
             &:hover {
-              background: rgba(66, 185, 131, 0.1);
-              color: #35a574;
+              background: rgba(255, 0, 0, 0.1);
+              color: #ff4444;
             }
           }
         }
+      }
+      
+      .input-container {
+        display: flex;
+        align-items: flex-end;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        position: relative;
         
-        .send-btn {
-          color: #4665ee;
-          background: transparent;
+        &.dragging {
+          background: rgba(70, 101, 238, 0.1);
+          border: 2px dashed var(--primary-color);
+          
+          &::after {
+            content: "拖拽文件到此处上传";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--primary-color);
+            font-size: 0.9rem;
+            font-weight: 500;
+            pointer-events: none;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 8px 16px;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+          }
+        }
+        
+        .chat-input {
+          flex: 1;
           border: none;
-          cursor: pointer;
-          padding: 6px 8px;
-          border-radius: 4px;
+          background: transparent;
+          font-size: 1.05rem;
+          resize: none;
+          outline: none;
+          line-height: 1.5;
+          max-height: 220px;
+          min-height: 60px;
+          padding: 15px 0 15px 10px;
+          overflow-y: auto;
+          text-align: left;
+        }
+        
+        .input-tools {
           display: flex;
           align-items: center;
-          justify-content: center;
+          justify-content: flex-end;
+          align-self: flex-end;
+          margin-left: 8px;
           
-          &:hover {
-            background: rgba(70, 101, 238, 0.1);
+          .tool-btn {
+            background: transparent;
+            border: none;
+            color: #666;
+            padding: 6px 8px;
+            margin-right: 6px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            
+            &:hover {
+              background: rgba(0, 0, 0, 0.05);
+              color: #333;
+            }
+            
+            /* 模型切换按钮特殊样式 */
+            &.model-switch-btn {
+              color: var(--accent-color);
+              
+              &:hover {
+                background: rgba(255, 107, 149, 0.1);
+                color: #FF5B85;
+              }
+            }
+            
+            /* 提示词库按钮特殊样式 */
+            &.prompt-library-btn {
+              color: var(--primary-color);
+              
+              &:hover {
+                background: rgba(70, 101, 238, 0.1);
+                color: #3a56d4;
+              }
+            }
+            
+            /* 文件上传按钮特殊样式 */
+            &.upload-btn {
+              color: #42b983; /* 翡翠绿色 */
+              
+              &:hover {
+                background: rgba(66, 185, 131, 0.1);
+                color: #35a574;
+              }
+            }
+            
+            /* 文件管理按钮特殊样式 */
+            &.file-manager-btn {
+              color: #f39c12; /* 橙色 */
+              
+              &:hover {
+                background: rgba(243, 156, 18, 0.1);
+                color: #d68910;
+              }
+            }
           }
           
-          &:disabled {
-            color: #ccc;
-            cursor: not-allowed;
-          }
-          
-          svg {
-            stroke: currentColor;
+          .send-btn {
+            color: #4665ee;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 6px 8px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            
+            &:hover {
+              background: rgba(70, 101, 238, 0.1);
+            }
+            
+            &:disabled {
+              color: #ccc;
+              cursor: not-allowed;
+            }
+            
+            svg {
+              stroke: currentColor;
+            }
           }
         }
       }
