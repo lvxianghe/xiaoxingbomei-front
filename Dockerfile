@@ -23,11 +23,12 @@ RUN pnpm run build
 # 阶段2：运行阶段
 FROM nginx:latest
 
-# 复制nginx配置
+# 复制nginx配置并删除默认配置
 COPY nginx.conf /etc/nginx/nginx.conf
+RUN rm -f /etc/nginx/conf.d/default.conf
 
-# 从构建阶段复制dist文件到nginx的xiaoxingbomei子目录
-COPY --from=builder /app/dist /usr/share/nginx/html/xiaoxingbomei
+# 从构建阶段复制dist文件到nginx的html目录
+COPY --from=builder /app/dist /usr/share/nginx/html
 
 # 暴露端口
 EXPOSE 7777

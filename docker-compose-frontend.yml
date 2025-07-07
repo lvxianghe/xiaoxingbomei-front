@@ -1,0 +1,19 @@
+version: '3.8'
+name: xiaoxingbomei
+
+services:
+  frontend:
+    build: .
+    image: xiaoxingbomei-frontend:latest
+    container_name: xiaoxingbomei-frontend
+    ports:
+      - "7777:80"
+    networks:
+      - xiaoxingbomei-frontend-network
+      - xiaoxingbomei_xiaoxingbomei-backend-network
+
+networks:
+  xiaoxingbomei-frontend-network:
+    driver: bridge
+  xiaoxingbomei_xiaoxingbomei-backend-network:
+    external: true 
